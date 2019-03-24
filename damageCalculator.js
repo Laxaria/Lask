@@ -15,7 +15,9 @@ class damageCalculator {
     let output = {
       "raw": this.weapon.raw + this.skills.addRaw,
       "affinity": this.weapon.affinity,
-      "crit boost": this.skills.CB
+      "crit boost": this.skills.CB,
+      "raw mults": this.skills.rawMult,
+      "add affinity": this.skills.addAff,
     }
     return output
   }
@@ -24,10 +26,10 @@ class damageCalculator {
     let raw = this.weapon.raw
     let addRaw = this.skills.addRaw
     let totalAff = () => {
-      if (this.weapon.affinity > 100) {
+      if (this.weapon.affinity + this.skills.addAff > 100) {
         return 100
       } else {
-        return this.weapon.affinity
+        return this.weapon.affinity + this.skills.addAff
       }
     }
     let affMod = this.skills.critMod()

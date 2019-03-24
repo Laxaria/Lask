@@ -5,29 +5,31 @@ class CLIParser {
     this.errmsg = ""
   };
 
+  parseError(errmsg) {
+    this.quit = true
+    this.errmsg = errmsg
+    return
+  }
+
   rawParse(string) {
-    let err = false
     let raw = string.match(/\d{2,3}/)
-    if (raw !== null) {
+    if (raw === null) {
+      this.parseError("Unable to parse raw value of weapon")
+      return
+    } 
+    else if (raw !== null) {
       if (raw[0].length === 3) {
         return parseInt(raw[0])
-      } else {
-        err = true
       }
-    } else {
-      err = true
-    }
-    if (err === true) {
-      this.quit = true
-      this.errmsg = "Unable to parse raw value of weapon"
-      return
     }
   }
 
   affParse(string) {
-    let err = false
     let aff = string.match(/\d?.?\d{1,3}/)
-    if (aff !== null) {
+    if (aff === null) {
+      this.parseError("Unable to parse affinity value of weapon")
+    } 
+    else if (aff !== null) {
       aff = parseFloat(aff)
       if (aff <= 1) {
         aff = aff * 100
@@ -35,22 +37,19 @@ class CLIParser {
       } else if (aff > 1 && aff <= 100) {
         return parseInt(aff)
       } else {
-        err = true
+        this.parseError("Unable to parse affinity value of weapon")
+        return
       }
-    } else {
-      err = true
-    }
-    if (err === true) {
-      this.quit = true
-      this.errmsg = "Unable to parse affinity value of weapon"
-      return
     }
   }
 
   auxParse(string) {
-    let err = false
     let atkSkill = string.toLowerCase().match(/(au([sml]))/)
-    if (atkSkill !== null) {
+    if (atkSkill === null) {
+      this.parseError("Unable to parse AuX skill. Acceptable values are AuS/AuM/AuL.")
+      return
+    }
+    else if (atkSkill !== null) {
       switch (atkSkill[2]) {
         case 's':
           return 10
@@ -59,32 +58,42 @@ class CLIParser {
         case 'l':
           return 20
         default:
-          err = true
+          this.parseError("Unable to parse AuX skill. Acceptable values are AuS/AuM/AuL.")
+          break
       }
-    }
-    if (err === true) {
-      this.quit = true
-      this.errmsg = "Failed to parse AuX skills"
-      return
     }
   }
 
   rawMultParse(string) {
-    let err = false
-    let rawMult = string.match(/x?(\d{1}.\d{1})x?/)
-    if (rawMult !== null) {
-      return parseFloat(rawMult[1])
-    } else {
-      err = true
+    let rawMult = string.match(/x?(\d{1}.\d{1,2})x?/)
+    if (rawMult === null) {
+      this.parseError("Unable to parse raw multiplier")
+      return
     }
-    if (err === true) {
-      this.quit = true
-      this.errmsg = "Failed to parse raw multiplier"
+    else if (rawMult !== null) {
+      return parseFloat(rawMult[1])
+    }
+  }
+
+  affSkillParse(string) {
+    let availRanks = [1, 2, 3]
+    let affSkill = string.toLowerCase().match(/ce\+?(\d)/)
+    if (affSkill === null) {
+      this.parseError("Unable to parse CE skill")
+      return
+    } else {
+      let affGainRank = parseInt(affSkill[1])
+      if (availRanks.includes(affGainRank)) {
+        return affGainRank * 10
+      } else {
+        this.parseError("CE Rank greater than 3")
+        return
+      }
     }
   }
 
   parser(cliString, weapon, skills) {
-    let _data = cliString.split(';')
+    let _data = cliString.split(",")
     if (_data.length > this.maxArray) {
       this.quit = true 
       this.errmsg = "Data longer than tolerated max length"
@@ -99,7 +108,7 @@ class CLIParser {
         weapon.raw = this.rawParse(_value)
       } 
 
-      else if (_value.toLowerCase().includes('raw' && _value.toLowerCase().includes('x'))) {
+      else if (_value.toLowerCase().includes('raw') && _value.toLowerCase().includes('x')) {
         skills.rawMult = skills.rawMult * this.rawMultParse(_value)
       }
       
@@ -117,6 +126,10 @@ class CLIParser {
       
       else if (_value.toLowerCase().includes('au')) {
         skills.addRaw = skills.addRaw + this.auxParse(_value)
+      }
+
+      else if (_value.toLowerCase().includes('ce')) {
+        skills.addAff = skills.addAff + this.affSkillParse(_value)
       }
     }
   }
