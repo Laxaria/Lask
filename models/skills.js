@@ -3,6 +3,7 @@ class Skills {
     this.CB = false
     this.WE = false
     this.addRaw = 0
+    this.addAFf = 0
   }
   critMod() {
     if (this.CB === false) {
