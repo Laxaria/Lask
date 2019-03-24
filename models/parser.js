@@ -47,6 +47,27 @@ class CLIParser {
     }
   }
 
+  auxParse(string) {
+    let err = false
+    let atkSkill = string.toLowerCase().match(/(au([sml]))/)
+    if (atkSkill !== null) {
+      switch (atkSkill[2]) {
+        case 's':
+          return 10
+        case 'm':
+          return 15
+        case 'l':
+          return 20
+        default:
+          err = true
+      }
+    }
+    if (err === true) {
+      this.quit = true
+      this.errmsg = "Failed to parse AuX skills"
+      return
+    }
+  }
 
   parser(cliString, weapon, skills) {
     let _data = cliString.split(';')
@@ -77,19 +98,7 @@ class CLIParser {
       } 
       
       else if (_value.toLowerCase().includes('au')) {
-        let atkSkill = _value.toLowerCase().match(/(au([sml]))/)
-        console.log(atkSkill[2])
-        switch (atkSkill[2]) {
-          case 's':
-            skills.addRaw = skills.addRaw + 10
-            break
-          case 'm':
-          skills.addRaw = skills.addRaw + 15
-            break
-          case 'l':
-            skills.addRaw = skills.addRaw + 20
-            break
-        }
+        skills.addRaw = skills.addRaw + this.auxParse(_value)
       }
     }
   }
