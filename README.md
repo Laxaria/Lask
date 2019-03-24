@@ -4,3 +4,4 @@ Lask is a under development backbone meant to take a string of text with Monster
 
 Currently developing app backbone for cross-use (e.g. Discord bot, Reddit bot, etc)
 
+Testing
