@@ -20,12 +20,15 @@ class CLIParser {
     else if (raw !== null) {
       if (raw[0].length === 3) {
         return parseInt(raw[0])
+      } else {
+        this.parseError("Unable to parse raw value of weapon")
+        return
       }
     }
   }
 
   affParse(string) {
-    let aff = string.match(/\d?.?\d{1,3}/)
+    let aff = string.match(/\d?\.?\d{1,3}/)
     if (aff === null) {
       this.parseError("Unable to parse affinity value of weapon")
     } 
@@ -44,7 +47,7 @@ class CLIParser {
   }
 
   auxParse(string) {
-    let atkSkill = string.toLowerCase().match(/(au([sml]))/)
+    let atkSkill = string.match(/(au([sml]))/)
     if (atkSkill === null) {
       this.parseError("Unable to parse AuX skill. Acceptable values are AuS/AuM/AuL.")
       return
@@ -65,7 +68,7 @@ class CLIParser {
   }
 
   rawMultParse(string) {
-    let rawMult = string.match(/x?(\d{1}.\d{1,2})x?/)
+    let rawMult = string.match(/x?(\d{1}\.\d{1,2})x?/)
     if (rawMult === null) {
       this.parseError("Unable to parse raw multiplier")
       return
@@ -77,7 +80,7 @@ class CLIParser {
 
   affSkillParse(string) {
     let availRanks = [1, 2, 3]
-    let affSkill = string.toLowerCase().match(/ce\+?(\d)/)
+    let affSkill = string.match(/ce\+?(\d)/)
     if (affSkill === null) {
       this.parseError("Unable to parse CE skill")
       return
@@ -92,44 +95,67 @@ class CLIParser {
     }
   }
 
-  parser(cliString, weapon, skills) {
+  monHZParse(string) {
+    let hitzone = string.match(/\d?\.?\d{1,3}/)
+    if (hitzone === null) {
+      this.parseError("Unable to parse monster raw hitzone")
+    }
+    hitzone = parseFloat(hitzone)
+    console.log(hitzone)
+    if (hitzone < 2.0) {
+      return parseInt(hitzone * 100)
+    } else if (hitzone >= 2 && hitzone <= 200) {
+      return parseInt(hitzone)
+    } else {
+      this.parseError("Unable to parse monster raw hitzone")
+    }
+  }
+
+  parser(cliString, weapon, skills, monster) {
     let _data = cliString.split(",")
     if (_data.length > this.maxArray) {
-      this.quit = true 
-      this.errmsg = "Data longer than tolerated max length"
+      this.parseError("Data longer than tolerated max length")
       return
     }
     for (let i = 0; i < _data.length; i++) {
       if (this.quit !== false) { break }
       
-      let _value = _data[i].trim()
+      let _value = _data[i].trim().toLowerCase()
       
-      if (_value.toLowerCase().includes('raw') && weapon.raw === 0) {
+      if (_value.includes('raw') && weapon.raw === 0) {
         weapon.raw = this.rawParse(_value)
       } 
 
-      else if (_value.toLowerCase().includes('raw') && _value.toLowerCase().includes('x')) {
+      else if (_value.includes('raw') && _value.includes('x')) {
         skills.rawMult = skills.rawMult * this.rawMultParse(_value)
       }
       
-      else if (_value.toLowerCase().includes('aff') && weapon.affinity === 0) {
+      else if (_value.includes('aff') && weapon.affinity === 0) {
         weapon.affinity = this.affParse(_value)
       } 
       
-      else if (_value.toUpperCase() === 'WE') {
+      else if (_value === 'we') {
         skills.WE = true
       } 
       
-      else if (_value.toUpperCase() === 'CB') {
+      else if (_value === 'cb') {
         skills.CB = true
       } 
       
-      else if (_value.toLowerCase().includes('au')) {
+      else if (_value.includes('au')) {
         skills.addRaw = skills.addRaw + this.auxParse(_value)
       }
 
-      else if (_value.toLowerCase().includes('ce')) {
+      else if (_value.includes('ce')) {
         skills.addAff = skills.addAff + this.affSkillParse(_value)
+      }
+
+      else if (_value.includes('ehz') && monster.elmHitzone === 100) {
+        monster.elmHitzone = this.monHZParse(_value)
+      }
+
+      else if (_value.includes('hz') && monster.rawHitzone === 100) {
+        monster.rawHitzone = this.monHZParse(_value)
       }
     }
   }
