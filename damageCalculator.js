@@ -31,8 +31,9 @@ class damageCalculator {
       }
     }
     let affMod = this.skills.critMod()
+    let rawMult = this.skills.rawMult
 
-    return ((raw + addRaw) * (1 + totalAff()/100 * affMod)).toPrecision(6)
+    return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult).toPrecision(6)
 
   }
 

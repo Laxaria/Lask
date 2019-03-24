@@ -4,6 +4,7 @@ class Skills {
     this.WE = false
     this.addRaw = 0
     this.addAff = 0
+    this.rawMult = 1
   }
   critMod() {
     if (this.CB === false) {

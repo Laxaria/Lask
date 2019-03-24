@@ -69,11 +69,25 @@ class CLIParser {
     }
   }
 
+  rawMultParse(string) {
+    let err = false
+    let rawMult = string.match(/x?(\d{1}.\d{1})x?/)
+    if (rawMult !== null) {
+      return parseFloat(rawMult[1])
+    } else {
+      err = true
+    }
+    if (err === true) {
+      this.quit = true
+      this.errmsg = "Failed to parse raw multiplier"
+    }
+  }
+
   parser(cliString, weapon, skills) {
     let _data = cliString.split(';')
     if (_data.length > this.maxArray) {
       this.quit = true 
-      this.errmsg = "Fuck you"
+      this.errmsg = "Data longer than tolerated max length"
       return
     }
     for (let i = 0; i < _data.length; i++) {
@@ -84,6 +98,10 @@ class CLIParser {
       if (_value.toLowerCase().includes('raw') && weapon.raw === 0) {
         weapon.raw = this.rawParse(_value)
       } 
+
+      else if (_value.toLowerCase().includes('raw' && _value.toLowerCase().includes('x'))) {
+        skills.rawMult = skills.rawMult * this.rawMultParse(_value)
+      }
       
       else if (_value.toLowerCase().includes('aff') && weapon.affinity === 0) {
         weapon.affinity = this.affParse(_value)
