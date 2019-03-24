@@ -36,7 +36,7 @@ function constructForm () {
     for (let curs = 0; curs < inputArrays.length; curs ++) {
         let input = document.createElement("input");
         input.type = "textarea";
-        input.style.height = "100px";
+        input.style.width = "500px";
         input.id = inputArrays[curs];
         formFormer(input, inputArrays[curs], newForm);
     };
