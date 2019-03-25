@@ -56,7 +56,6 @@ class damageCalculator {
 
     let damageCalcString = `(${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${rawMult} * ${monsterRawHZ/100}`
     console.log(damageCalcString)
-
     return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100).toPrecision(6)
   }
 
@@ -84,17 +83,23 @@ class CLIParser {
   constructor() {
     this.maxArray = 20
     this.quit = false
-    this.errmsg = ""
+    this.errmsg = "0"
   };
+
+  regExpTest (regexp, string) {
+    let re = new RegExp(regexp)
+    return re.test(string)
+  }
 
   parseError(errmsg) {
     this.quit = true
     this.errmsg = errmsg
+    // console.log(this.errmsg)
     return
   }
 
   rawParse(string) {
-    let raw = string.match(/\d{2,3}/)
+    let raw = string.match(/\d{2,3}\b/)
     if (raw === null) {
       this.parseError("Unable to parse raw value of weapon")
       return
@@ -110,7 +115,7 @@ class CLIParser {
   }
 
   affParse(string) {
-    let aff = string.match(/\d?\.?\d{1,3}/)
+    let aff = string.match(/\d?\.?\d{1,3}\b/)
     if (aff === null) {
       this.parseError("Unable to parse affinity value of weapon")
     } 
@@ -129,7 +134,7 @@ class CLIParser {
   }
 
   auxParse(string) {
-    let atkSkill = string.match(/(au([sml]))/)
+    let atkSkill = string.match(/(au([sml]))\b/)
     if (atkSkill === null) {
       this.parseError("Unable to parse AuX skill. Acceptable values are AuS/AuM/AuL.")
       return
@@ -150,7 +155,7 @@ class CLIParser {
   }
 
   rawMultParse(string) {
-    let rawMult = string.match(/x?(\d{1}\.\d{1,2})x?/)
+    let rawMult = string.match(/x?(\d{1}\.\d{1,2})x?\b/)
     if (rawMult === null) {
       this.parseError("Unable to parse raw multiplier")
       return
@@ -160,9 +165,30 @@ class CLIParser {
     }
   }
 
+  addRawParse(string) {
+    let rawAdd = string.match(/([\+\-])(\d{1,3})\b/)
+    if (rawAdd === null) {
+      this.parseError("Unable to parse additional raw")
+      return
+    } else if (rawAdd !== null) {
+      switch (rawAdd[1]) {
+        case "+":
+          return parseInt(rawAdd[2])
+        case "-":
+          return 0 - parseInt(rawAdd[2])
+        default:
+          this.parseError("Unable to parse additional raw")
+          break
+      }
+    } else {
+      this.parseError('Unable to parse additional raw')
+      return
+    }
+  }
+
   affSkillParse(string) {
     let availRanks = [1, 2, 3]
-    let affSkill = string.match(/ce\+?(\d)/)
+    let affSkill = string.match(/ce\+?(\d)\b/)
     if (affSkill === null) {
       this.parseError("Unable to parse CE skill")
       return
@@ -178,12 +204,12 @@ class CLIParser {
   }
 
   monHZParse(string) {
-    let hitzone = string.match(/\d?\.?\d{1,3}/)
+    let hitzone = string.match(/\d?\.?\d{1,3}\b/)
     if (hitzone === null) {
       this.parseError("Unable to parse monster raw hitzone")
     }
     hitzone = parseFloat(hitzone)
-    console.log(hitzone)
+    // console.log(hitzone)
     if (hitzone < 2.0) {
       return parseInt(hitzone * 100)
     } else if (hitzone >= 2 && hitzone <= 200) {
@@ -216,11 +242,11 @@ class CLIParser {
         weapon.affinity = this.affParse(_value)
       } 
       
-      else if (_value === 'we') {
+      else if (this.regExpTest(/we/, _value)) {
         skills.WE = true
       } 
       
-      else if (_value === 'cb') {
+      else if (this.regExpTest(/cb/, _value)) {
         skills.CB = true
       } 
       
@@ -238,6 +264,14 @@ class CLIParser {
 
       else if (_value.includes('hz') && monster.rawHitzone === 100) {
         monster.rawHitzone = this.monHZParse(_value)
+      }
+
+      else if (this.regExpTest(/([\+\-])(\d{1,3})\b/, _value)) {
+        skills.addRaw = skills.addRaw + this.addRawParse(_value)
+      }
+
+      else {
+        this.parseError("A poorly formatted string was detected. Parsing quit")
       }
     }
   }
@@ -298,72 +332,72 @@ module.exports = Weapon
 const damageCalculator = require("./damageCalculator")
 
 if(window.attachEvent) {
-    window.attachEvent('onload', onstructPage);
+  window.attachEvent('onload', onstructPage);
 } else {
-    if(window.onload) {
-        var curronload = window.onload;
-        var newonload = function(evt) {
-            // curronload(evt);
-            constructPage(evt);
-        };
-        window.onload = newonload;
-    } else {
-        window.onload = constructPage;
-    }
+  if(window.onload) {
+    var curronload = window.onload;
+    var newonload = function(evt) {
+      // curronload(evt);
+      constructPage(evt);
+    };
+    window.onload = newonload;
+  } else {
+    window.onload = constructPage;
+  }
 };
 
 function constructPage (evt) {
-    let mainDiv = document.getElementById('main_div');
-    let appDiv = document.createElement('div');
-    appDiv.id = "app"
-    mainDiv.appendChild(appDiv)
-    constructForm();
+  let mainDiv = document.getElementById('main_div');
+  let appDiv = document.createElement('div');
+  appDiv.id = "app"
+  mainDiv.appendChild(appDiv)
+  constructForm();
 };
 
 function constructForm () {
-    let inputArrays = ["CLI"];
-    let divApp = document.getElementById("app");
-    let newForm = document.createElement("form");
-    let output = document.createElement("p");
-    output.id = "output";
-    newForm.id = "mainformapp";
-    for (let curs = 0; curs < inputArrays.length; curs ++) {
-        let input = document.createElement("input");
-        input.type = "textarea";
-        input.style.width = "500px";
-        input.id = inputArrays[curs];
-        formFormer(input, inputArrays[curs], newForm);
-    };
-    let submitInput = document.createElement("input")
-    submitInput.type = "button";
-    submitInput.value = "Submit";
-    submitInput.onclick = submitData;
-    newForm.appendChild(document.createElement("br"))
-    newForm.appendChild(submitInput);
-    divApp.appendChild(newForm);
-    divApp.appendChild(output)
+  let inputArrays = ["CLI"];
+  let divApp = document.getElementById("app");
+  let newForm = document.createElement("form");
+  let output = document.createElement("p");
+  output.id = "output";
+  newForm.id = "mainformapp";
+  for (let curs = 0; curs < inputArrays.length; curs ++) {
+    let input = document.createElement("input");
+    input.type = "textarea";
+    input.style.width = "500px";
+    input.id = inputArrays[curs];
+    formFormer(input, inputArrays[curs], newForm);
+  };
+  let submitInput = document.createElement("input")
+  submitInput.type = "button";
+  submitInput.value = "Submit";
+  submitInput.onclick = submitData;
+  newForm.appendChild(document.createElement("br"))
+  newForm.appendChild(submitInput);
+  divApp.appendChild(newForm);
+  divApp.appendChild(output)
 }
 
 function formFormer (element, elementText, formElement) {
-    formElement.append(elementText)
-    formElement.appendChild(document.createElement("br"))
-    formElement.appendChild(element)
-    formElement.appendChild(document.createElement("br"))
+  formElement.append(elementText)
+  formElement.appendChild(document.createElement("br"))
+  formElement.appendChild(element)
+  formElement.appendChild(document.createElement("br"))
 }
 
 function submitData () {
-    let elements = document.getElementById("mainformapp").elements;
-    let dataPromise = new Promise ((resolve, reject) => {
-        let dmg = new damageCalculator(elements['CLI'].value)
-        resolve(dmg)
-    })
-    dataPromise.then((value) => {
-        console.log(value.weaponStats())
-        let str = `Effective Raw: ${value.effectiveRawCalc()} \n ----`
-        let subDiv = document.createElement("div");
-        subDiv.innerText = str;
-        document.getElementById("output_div").prepend(subDiv);
-    })
+  let elements = document.getElementById("mainformapp").elements;
+  let dataPromise = new Promise ((resolve, reject) => {
+    let dmg = new damageCalculator(elements['CLI'].value)
+    resolve(dmg)
+  })
+  dataPromise.then((value) => {
+    console.log(value.weaponStats())
+    let str = `Effective Raw: ${value.effectiveRawCalc()} \n ----`
+    let subDiv = document.createElement("div");
+    subDiv.innerText = str;
+    document.getElementById("output_div").prepend(subDiv);
+  })
 };
 
 

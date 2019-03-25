@@ -55,7 +55,6 @@ class damageCalculator {
 
     let damageCalcString = `(${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${rawMult} * ${monsterRawHZ/100}`
     console.log(damageCalcString)
-
     return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100).toPrecision(6)
   }
 
