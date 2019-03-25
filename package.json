@@ -1,0 +1,11 @@
+{
+  "name": "lask",
+  "version": "0.0.1",
+  "description": "A framework for enabling quick MH damage calculations from a command-line esque string",
+  "main": "damageCalculator.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "Laxaria",
+  "license": "ISC"
+}
