@@ -1,6 +1,3 @@
-// import { Weapon } from "./models/weapon.js"
-// import { CLIParser } from "./models/parser.js"
-// import { Skills } from "./models/skills.js"
 const DamageCalculator = require("./DamageCalculator")
 
 if(window.attachEvent) {

@@ -30,6 +30,7 @@ class DamageCalculator {
     let raw = this.weapon.raw
     let addRaw = this.skills.addRaw
     let wepAff = this.weapon.affinity
+    let wepMV = this.weapon._motionValue
 
     let addAff = this.skills.addAff
     let affMod = this.skills.critMod()
@@ -48,9 +49,9 @@ class DamageCalculator {
       return _totalAff
     }
 
-    let damageCalcString = `(${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${rawMult} * ${monsterRawHZ/100}`
+    let damageCalcString = `(${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${rawMult} * ${monsterRawHZ/100} * ${wepMV}`
     console.log(damageCalcString)
-    return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100).toPrecision(6)
+    return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV).toPrecision(6)
   }
 
   effectiveRawCalc() {

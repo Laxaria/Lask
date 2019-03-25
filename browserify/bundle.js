@@ -330,7 +330,7 @@ module.exports = Weapon
 // import { Weapon } from "./models/weapon.js"
 // import { CLIParser } from "./models/parser.js"
 // import { Skills } from "./models/skills.js"
-const DamageCalculator = require("./damageCalculator")
+const DamageCalculator = require("./DamageCalculator")
 
 if(window.attachEvent) {
   window.attachEvent('onload', onstructPage);
@@ -404,4 +404,4 @@ function submitData () {
 
 
 
-},{"./damageCalculator":1}]},{},[6]);
+},{"./DamageCalculator":1}]},{},[6]);

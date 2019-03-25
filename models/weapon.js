@@ -1,9 +1,10 @@
 class Weapon {
   constructor (str) {
     this.str = str
-    this._raw = 0;
-    this._element = 0;
+    this._raw = 0
+    this._element = 0
     this._affinity = 0
+    this._motionValue = 1
   }
   set raw(val) {
     this._raw = val

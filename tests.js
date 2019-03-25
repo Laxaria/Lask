@@ -1,4 +1,4 @@
-const DamageCalculator = require("./damageCalculator.js")
+const DamageCalculator = require("./DamageCalculator.js")
 
 let TESTS = {
   "1" : {
