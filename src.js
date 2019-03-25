@@ -1,7 +1,7 @@
 // import { Weapon } from "./models/weapon.js"
 // import { CLIParser } from "./models/parser.js"
 // import { Skills } from "./models/skills.js"
-const damageCalculator = require("./damageCalculator")
+const DamageCalculator = require("./DamageCalculator")
 
 if(window.attachEvent) {
   window.attachEvent('onload', onstructPage);
@@ -60,12 +60,12 @@ function formFormer (element, elementText, formElement) {
 function submitData () {
   let elements = document.getElementById("mainformapp").elements;
   let dataPromise = new Promise ((resolve, reject) => {
-    let dmg = new damageCalculator(elements['CLI'].value)
+    let dmg = new DamageCalculator(elements['CLI'].value)
     resolve(dmg)
   })
   dataPromise.then((value) => {
     console.log(value.weaponStats())
-    let str = `Effective Raw: ${value.effectiveRawCalc()} \n ----`
+    let str = `${value.effectiveRawCalc()} \n ----`
     let subDiv = document.createElement("div");
     subDiv.innerText = str;
     document.getElementById("output_div").prepend(subDiv);

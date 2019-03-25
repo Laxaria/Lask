@@ -1,15 +1,10 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-// import { Weapon } from "./models/weapon.js"
-// import { CLIParser } from "./models/parser.js"
-// import { Skills } from "./models/skills.js"
-// import { Monster } from "./models/monster.js"
-
 const Weapon = require("./models/weapon")
 const CLIParser = require("./models/parser")
 const Skills = require("./models/skills")
 const Monster = require("./models/monster")
 
-class damageCalculator {
+class DamageCalculator {
   constructor (cliString) {
     this.cliString = cliString
     this.weapon = new Weapon()
@@ -63,12 +58,16 @@ class damageCalculator {
     if (this.parse.quit === true) {
       return this.parse.errmsg
     } else {
-      return this._effRawCalc()
+      if (this.monster.rawHitzone === 100) {
+        return `Effective Raw: ${this._effRawCalc()}`
+      } else if (this.monster.rawHitzone !== 100) {
+        return `Effective Damage: ${Math.floor(this._effRawCalc())}`
+      }
     }
   }
 }
 
-module.exports = damageCalculator
+module.exports = DamageCalculator
 },{"./models/monster":2,"./models/parser":3,"./models/skills":4,"./models/weapon":5}],2:[function(require,module,exports){
 class Monster {
   constructor() {
@@ -229,6 +228,8 @@ class CLIParser {
       if (this.quit !== false) { break }
       
       let _value = _data[i].trim().toLowerCase()
+
+      if (_value === "") { continue }
       
       if (_value.includes('raw') && weapon.raw === 0) {
         weapon.raw = this.rawParse(_value)
@@ -271,7 +272,7 @@ class CLIParser {
       }
 
       else {
-        this.parseError("A poorly formatted string was detected. Parsing quit")
+        this.parseError(`A poorly formatted string was detected. Error in \{${_value}\}. Parsing quit`)
       }
     }
   }
@@ -329,7 +330,7 @@ module.exports = Weapon
 // import { Weapon } from "./models/weapon.js"
 // import { CLIParser } from "./models/parser.js"
 // import { Skills } from "./models/skills.js"
-const damageCalculator = require("./damageCalculator")
+const DamageCalculator = require("./damageCalculator")
 
 if(window.attachEvent) {
   window.attachEvent('onload', onstructPage);
@@ -388,12 +389,12 @@ function formFormer (element, elementText, formElement) {
 function submitData () {
   let elements = document.getElementById("mainformapp").elements;
   let dataPromise = new Promise ((resolve, reject) => {
-    let dmg = new damageCalculator(elements['CLI'].value)
+    let dmg = new DamageCalculator(elements['CLI'].value)
     resolve(dmg)
   })
   dataPromise.then((value) => {
     console.log(value.weaponStats())
-    let str = `Effective Raw: ${value.effectiveRawCalc()} \n ----`
+    let str = `${value.effectiveRawCalc()} \n ----`
     let subDiv = document.createElement("div");
     subDiv.innerText = str;
     document.getElementById("output_div").prepend(subDiv);

@@ -1,14 +1,9 @@
-// import { Weapon } from "./models/weapon.js"
-// import { CLIParser } from "./models/parser.js"
-// import { Skills } from "./models/skills.js"
-// import { Monster } from "./models/monster.js"
-
 const Weapon = require("./models/weapon")
 const CLIParser = require("./models/parser")
 const Skills = require("./models/skills")
 const Monster = require("./models/monster")
 
-class damageCalculator {
+class DamageCalculator {
   constructor (cliString) {
     this.cliString = cliString
     this.weapon = new Weapon()
@@ -62,9 +57,13 @@ class damageCalculator {
     if (this.parse.quit === true) {
       return this.parse.errmsg
     } else {
-      return this._effRawCalc()
+      if (this.monster.rawHitzone === 100) {
+        return `Effective Raw: ${this._effRawCalc()}`
+      } else if (this.monster.rawHitzone !== 100) {
+        return `Effective Damage: ${Math.floor(this._effRawCalc())}`
+      }
     }
   }
 }
 
-module.exports = damageCalculator
+module.exports = DamageCalculator

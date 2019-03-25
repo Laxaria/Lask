@@ -148,6 +148,8 @@ class CLIParser {
       if (this.quit !== false) { break }
       
       let _value = _data[i].trim().toLowerCase()
+
+      if (_value === "") { continue }
       
       if (_value.includes('raw') && weapon.raw === 0) {
         weapon.raw = this.rawParse(_value)
@@ -190,7 +192,7 @@ class CLIParser {
       }
 
       else {
-        this.parseError("A poorly formatted string was detected. Parsing quit")
+        this.parseError(`A poorly formatted string was detected. Error in \{${_value}\}. Parsing quit`)
       }
     }
   }
