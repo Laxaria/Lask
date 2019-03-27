@@ -5,7 +5,7 @@ const Monster = require("./models/monster")
 
 class DamageCalculator {
   constructor (cliString) {
-    this.cliString = cliString
+    this.cliString = cliString.toLowerCase()
     this.weapon = new Weapon()
     this.skills = new Skills()
     this.parse = new CLIParser()
@@ -30,7 +30,7 @@ class DamageCalculator {
     let raw = this.weapon.raw
     let addRaw = this.skills.addRaw
     let wepAff = this.weapon.affinity
-    let wepMV = this.weapon._motionValue
+    let wepMV = this.weapon.rawMotionValue
 
     let addAff = this.skills.addAff
     let affMod = this.skills.critMod()
@@ -49,9 +49,9 @@ class DamageCalculator {
       return _totalAff
     }
 
-    let damageCalcString = `(${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${rawMult} * ${monsterRawHZ/100} * ${wepMV}`
+    let damageCalcString = `(${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${rawMult} * ${monsterRawHZ/100} * ${wepMV/100}`
     console.log(damageCalcString)
-    return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV).toPrecision(6)
+    return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6)
   }
 
   effectiveRawCalc() {
