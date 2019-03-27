@@ -54,10 +54,7 @@ SEGMENT                 -> VALUE " " WORD 	  	    					{% (a) => { return [a[2].
 		                     | WORD VALUE													{% (a) => { return [a[0].value, a[1]] } %}
 
 WORD										-> %word															{% (a) => {if (totals.includes(a[0].value)) {return a[0]} else {return {'value': null}}} %}
-												#  | DISAMBIG												{% id %}
-												#  | STATIC_SKILL									{% (a) => {return a[0].value} %}
-												#  | VARIABLE_SKILL								{% (a) => {return a[0].value} %}
-												#  | %parse_error									{% (a) => {if (a[0].type === 'parse_error') {return a[0].value}} %}
+
 	
 VALUE 									-> NUMBER 														{% constructMetaObj(0) %}
 	   										 | %operand NUMBER 										{% constructMetaObj(1, 0) %}
@@ -66,17 +63,3 @@ VALUE 									-> NUMBER 														{% constructMetaObj(0) %}
 	
 NUMBER 									-> %number														{% id %}
 												 | %decimal 													{% id %}
-
-# DISAMBIG								-> "cb"														{% id %}
-
-# KEYWORD 							 -> "raw"													{% id %}
-# 		  									| "aff" 												{% id %}
-# 		  									| "hz" 													{% id %}
-# 		 										| "mv" 													{% id %}
-		  
-# STATIC_SKILL 					 -> "we" 													{% id %}
-# 		     								| "cb" 													{% id %}
-				
-# VARIABLE_SKILL 				-> "ce" 													{% id %}
-# 											 | "ch" 													{% id %}
-# 									     | "au"														{% id %} 
