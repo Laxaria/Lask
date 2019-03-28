@@ -21,7 +21,7 @@ class Lask {
       "raw mults": this.skills.rawMult,
       "add affinity": this.skills.addAff,
       "monster raw hitzone": this.monster.rawHitzone,
-      "monster element hitzone": this.monster.elmHitzone
+      "monster element hitzone": this.monster.elmHitzone,
     }
     return output
   }

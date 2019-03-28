@@ -46,6 +46,7 @@ class CLIParser {
     })()
 
     let wep = data['weapon']
+    weapon.name = wep
 
     let parsedData = data['data']
 

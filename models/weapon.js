@@ -5,6 +5,7 @@ class Weapon {
     this._element = 0
     this._affinity = 0
     this.rawMotionValue = 100
+    this.name = ''
   }
   set raw(val) {
     this._raw = val

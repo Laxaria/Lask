@@ -22,7 +22,7 @@ class Lask {
       "raw mults": this.skills.rawMult,
       "add affinity": this.skills.addAff,
       "monster raw hitzone": this.monster.rawHitzone,
-      "monster element hitzone": this.monster.elmHitzone
+      "monster element hitzone": this.monster.elmHitzone,
     }
     return output
   }
@@ -240,6 +240,7 @@ class CLIParser {
     })()
 
     let wep = data['weapon']
+    weapon.name = wep
 
     let parsedData = data['data']
 
@@ -363,6 +364,7 @@ class Weapon {
     this._element = 0
     this._affinity = 0
     this.rawMotionValue = 100
+    this.name = ''
   }
   set raw(val) {
     this._raw = val
@@ -1379,8 +1381,8 @@ function mhguSieve(payload, weapon, skills, monster) {
     return rawAffStruct[payload.keyword](load.sk)
   }
 
-  if (rawAffStruct['weapons'].includes(weapon)) {
-    return rawAffStruct[weapon](load.sk)
+  if (rawAffStruct['weapons'].includes(weapon.name)) {
+    return rawAffStruct[weapon.name](load.sk)
   }
 
   if (['sharp'].includes(payload.keyword)) {
