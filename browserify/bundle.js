@@ -194,6 +194,7 @@ module.exports = Monster
 },{}],4:[function(require,module,exports){
 const nearley = require('nearley')
 const grammar = require('../grammar/grammar')
+const mhguSieve = require ('../utils/mhguUtils')
 
 class CLIParser {
   constructor() {
@@ -202,83 +203,12 @@ class CLIParser {
     this.errmsg = '0'
   };
   
-  parseRawAff(game, keyword, value, operand, weapon, skills) {
-    let val 
-    if (value.includes('.')) {
-      val = parseFloat(value)
-    } else {
-      val = parseInt(value)
-    }
-    switch (keyword) {
-      case 'raw':
-        switch (operand) {
-          case null:
-            if (weapon.raw === 0 && val) {
-              weapon.raw = val
-            } else if (Number.isNaN(_wepRaw)) {
-              this.parseError('Weapon raw was not assigned due to error in input')
-            } else {
-              this.parseError('Weapon raw can only be assigned once')
-            }
-            break
-          case '+':
-            skills.addRaw += val
-            break
-          case '-':
-            skills.addRaw =- val
-            break
-          case 'x':
-            skills.rawMult.push(val)
-            break
-          default:
-            this.parseError('Unable to parse some section involving raw')
-            break
-        }
-        break
-      case 'aff':
-        if (!Number.isInteger(val)) { this.parseError('Affinity value must be an integer (>=0)')}
-        switch (operand) {
-          case null:
-            if (weapon.affinity === 0) {
-              weapon.affinity = val
-            } else {
-              this.parseError('Weapon affinity can only be assigned once')
-            }
-            break
-          case '+':
-            skills.addAff += val
-            break
-          case '-': 
-            skills.addAff -= val
-            break
-          case 'x':
-            this.parseError('Multiplers to affinity are not allowed')
-            break
-          default:
-            this.parseError('Unable  to parse some section involving affinity')
-            break
-        }
-        break
-        default:
-          this.parseError('An error occurred')
-          break
-    }
-  }
-
-  parseMHGUAU(game, keyword, value, skills) {
-    switch (keyword) {
-      case 'aus':
-        skills.addRaw += 10
-        break
-      case 'aum':
-        skills.addRaw += 15
-        break
-      case 'aul':
-        skills.addRaw += 20
-        break
-      default:
-        this.parseError('An unexpected error occurred')
-        break
+  mhguParser(game, keyword, value, operand, weapon, skills, monster) {
+    // console.log(keyword)
+    let check = mhguSieve(game, keyword, value, operand, weapon, skills, monster)
+    if (check !== true) {
+      // console.log(keyword)
+      this.parseError(check)
     }
   }
 
@@ -324,29 +254,14 @@ class CLIParser {
       switch (keyword) {
         case 'raw':
         case 'aff':
-          this.parseRawAff(game, keyword, value, operand, weapon, skills)
-          break
         case 'aus':
         case 'aum':
         case 'aul':
-          this.parseMHGUAU(game, keyword, value, skills)
-          break
         case 'we':
-          skills.WE = true
-          break
         case 'cb': 
-          skills.CB = true
-          break
         case 'hz':
-          if (value <= 1) {
-            value *= 100
-          }
-          monster.rawHitzone = value
-          break
         case 'ce':
-          if (game === 'mhgu' && (1 <= value <= 3)) {
-            skills.addAff += value * 10
-          }
+          this.mhguParser(game, keyword, value, operand, weapon, skills, monster)
           break
         case 'mv':
           if (value <= 1) {
@@ -401,7 +316,7 @@ class CLIParser {
 }
 
 module.exports = CLIParser
-},{"../grammar/grammar":2,"nearley":8}],5:[function(require,module,exports){
+},{"../grammar/grammar":2,"../utils/mhguUtils":10,"nearley":8}],5:[function(require,module,exports){
 class Skills {
   constructor () {
     this.CB = false
@@ -1391,4 +1306,52 @@ function submitData () {
 
 
 
-},{"./Lask":1}]},{},[9]);
+},{"./Lask":1}],10:[function(require,module,exports){
+const rawAffStruct = {
+  'raw': (wp, sk, m, v) => { if (wp.raw === 0) {wp.raw = v; return true} else {return 'Weapon raw assigned more than once'}},
+  'aff': (wp, sk, m, v) => { if (wp.affinity === 0) {wp.affinity = v; return true} else {return 'Weapon affinity assigned more than once'}},
+  '+raw': (wp, sk, m, v) => { sk.addRaw += v; return true},
+  '-raw': (wp, sk, m, v) => { sk.addRaw -= v; return true},
+  'xraw': (wp, sk, m, v) => { sk.rawMult.push(v); return true},
+  '+aff': (wp, sk, m, v) => { sk.addAff += v; return true},
+  '-aff': (wp, sk, m, v) => { sk.addAff += v; return true},
+  'aus': (wp, sk, m, v) => { sk.addRaw += 10; return true},
+  'aum': (wp, sk, m, v) => { sk.addRaw += 15; return true},
+  'aul': (wp, sk, m, v) => { sk.addRaw += 20; return true},
+  'we': (wp, sk, m, v) => { sk.WE = true; return true},
+  'cb': (wp, sk, m, v) => { sk.CB = true; return true},
+  'hz': (wp, sk, m, v) => { if (0 <= v && v <= 2) { m.rawHitzone = v * 100 } else {m.rawHitzone = v}; return true},
+  'ce': (wp, sk, m, v) => { if (1 <= v && v <= 3) {sk.addAff += v * 10; return true} else {return 'MHGU Crit Eye ranges only from 1 - 3'}},
+  'statics': ['aus', 'aum', 'aul', 'we', 'cb']
+}
+
+function mhguSieve(game, keyword, value, operand, weapon, skills, monster) {
+
+  if (rawAffStruct['statics'].includes(keyword)) {
+    return rawAffStruct[keyword](weapon, skills, monster, NaN)
+  }
+
+  if (!Number.isInteger(value) && value !== null) {
+    value = parseFloat(value)
+  } else if (Number.isInteger(value)) {
+    value = parseInt(value)
+  } else {
+    console.log(value)
+    return `Unable to parse value associated with ${keyword}`
+  }
+
+  if (Number.isNaN(value)) {
+    return `${keyword}'s value was not assigned`
+  } else if (keyword === 'aff' && operand === 'x') {
+    return 'Multiplers to affinity are not allowed'
+  }
+
+  if (operand === null) {operand = ''}
+  return rawAffStruct[operand+keyword](weapon, skills, monster, value)
+
+}
+
+
+
+module.exports = mhguSieve
+},{}]},{},[9]);

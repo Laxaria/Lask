@@ -15,7 +15,7 @@ let TESTS = {
   },
   '4' : {
     'string': 'nad, good, haha',
-    'value': 'fail'
+    'value': 123123
   },
   '5' : {
     'string': '320 raw, 40 aff, 60 hz, 1.5x raw, we, cb',
@@ -30,8 +30,8 @@ let TESTS = {
     'value': 42
   },
   '8' : {
-    'string': 'mhgu bow:220 raw,40 aff,60 hz,1.5x raw,we,cb,0.22 mv,0.80 gdm, aux',
-    'value': 47
+    'string': 'mhgu bow: 320 raw,40 aff,60 hz,1.5x raw,we,cb,0.22 mv,0.80 gdm',
+    'value': 68
   },
 }
 

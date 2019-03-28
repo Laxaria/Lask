@@ -1,5 +1,6 @@
 const nearley = require('nearley')
 const grammar = require('../grammar/grammar')
+const mhguSieve = require ('../utils/mhguUtils')
 
 class CLIParser {
   constructor() {
@@ -8,83 +9,12 @@ class CLIParser {
     this.errmsg = '0'
   };
   
-  parseRawAff(game, keyword, value, operand, weapon, skills) {
-    let val 
-    if (value.includes('.')) {
-      val = parseFloat(value)
-    } else {
-      val = parseInt(value)
-    }
-    switch (keyword) {
-      case 'raw':
-        switch (operand) {
-          case null:
-            if (weapon.raw === 0 && val) {
-              weapon.raw = val
-            } else if (Number.isNaN(_wepRaw)) {
-              this.parseError('Weapon raw was not assigned due to error in input')
-            } else {
-              this.parseError('Weapon raw can only be assigned once')
-            }
-            break
-          case '+':
-            skills.addRaw += val
-            break
-          case '-':
-            skills.addRaw =- val
-            break
-          case 'x':
-            skills.rawMult.push(val)
-            break
-          default:
-            this.parseError('Unable to parse some section involving raw')
-            break
-        }
-        break
-      case 'aff':
-        if (!Number.isInteger(val)) { this.parseError('Affinity value must be an integer (>=0)')}
-        switch (operand) {
-          case null:
-            if (weapon.affinity === 0) {
-              weapon.affinity = val
-            } else {
-              this.parseError('Weapon affinity can only be assigned once')
-            }
-            break
-          case '+':
-            skills.addAff += val
-            break
-          case '-': 
-            skills.addAff -= val
-            break
-          case 'x':
-            this.parseError('Multiplers to affinity are not allowed')
-            break
-          default:
-            this.parseError('Unable  to parse some section involving affinity')
-            break
-        }
-        break
-        default:
-          this.parseError('An error occurred')
-          break
-    }
-  }
-
-  parseMHGUAU(game, keyword, value, skills) {
-    switch (keyword) {
-      case 'aus':
-        skills.addRaw += 10
-        break
-      case 'aum':
-        skills.addRaw += 15
-        break
-      case 'aul':
-        skills.addRaw += 20
-        break
-      default:
-        this.parseError('An unexpected error occurred')
-        break
+  mhguParser(game, keyword, value, operand, weapon, skills, monster) {
+    // console.log(keyword)
+    let check = mhguSieve(game, keyword, value, operand, weapon, skills, monster)
+    if (check !== true) {
+      // console.log(keyword)
+      this.parseError(check)
     }
   }
 
@@ -130,29 +60,14 @@ class CLIParser {
       switch (keyword) {
         case 'raw':
         case 'aff':
-          this.parseRawAff(game, keyword, value, operand, weapon, skills)
-          break
         case 'aus':
         case 'aum':
         case 'aul':
-          this.parseMHGUAU(game, keyword, value, skills)
-          break
         case 'we':
-          skills.WE = true
-          break
         case 'cb': 
-          skills.CB = true
-          break
         case 'hz':
-          if (value <= 1) {
-            value *= 100
-          }
-          monster.rawHitzone = value
-          break
         case 'ce':
-          if (game === 'mhgu' && (1 <= value <= 3)) {
-            skills.addAff += value * 10
-          }
+          this.mhguParser(game, keyword, value, operand, weapon, skills, monster)
           break
         case 'mv':
           if (value <= 1) {
