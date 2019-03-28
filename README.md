@@ -15,6 +15,7 @@ Lask is a NodeJS app designed to take a string of text containing information ab
 <<< Effective damage: 47
 ```
 
+As most Monster Hunter damage calculation components are multipliers, Lask supports generic raw multipliers (`1.1x raw`) and addition/subtraction (`+22 raw`), therefore if Lask does not currently support a MH skill or damage calculation mechanic innately, it will manage if the skill or mechanic is converted into a damage multiplier.
 
 ## Dependencies
 
@@ -28,7 +29,7 @@ nearley
 
 ### Writing input
 
-Lask functions on MH shorthand. Give Lask a comma-space separated string for parsing. For example:
+Lask functions on MH shorthand. Give Lask a comma-space (`, `) separated string for parsing. For example:
 
 * `320 raw, 40 aff, 15 hz, we` means a MH weapon with 320 base raw, 40 affinity, connecting on a 15 hitzone with WE (Weakness Exploit) as an armor skill.
 
