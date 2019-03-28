@@ -1379,8 +1379,8 @@ function mhguSieve(payload, weapon, skills, monster) {
     return rawAffStruct[payload.keyword](load.sk)
   }
 
-  if (rawAffStruct['weapons'].includes(load.wp)) {
-    return rawAffStruct[load.wp](load.sk)
+  if (rawAffStruct['weapons'].includes(weapon)) {
+    return rawAffStruct[weapon](load.sk)
   }
 
   if (['sharp'].includes(payload.keyword)) {
