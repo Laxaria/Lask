@@ -1,4 +1,4 @@
-const DamageCalculator = require('./DamageCalculator.js')
+const Lask = require('./Lask.js')
 
 let TESTS = {
   '1' : {
@@ -37,7 +37,7 @@ let TESTS = {
 
 Object.entries(TESTS).forEach(([test, data]) => {
   console.log('---')
-  let dmgCalc = new DamageCalculator(data['string'])
+  let dmgCalc = new Lask(data['string'])
   let output = dmgCalc.effectiveRawCalc(true)
   if ( dmgCalc.parse.errmsg.length > 1 && !(data['value'] === 'fail') ) {
     console.log(`Test ${test} failed`)

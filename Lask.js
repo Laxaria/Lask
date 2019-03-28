@@ -3,7 +3,7 @@ const CLIParser = require("./models/parser")
 const Skills = require("./models/skills")
 const Monster = require("./models/monster")
 
-class DamageCalculator {
+class Lask {
   constructor (cliString) {
     this.cliString = cliString.toLowerCase()
     this.weapon = new Weapon()
@@ -77,4 +77,4 @@ class DamageCalculator {
   }
 }
 
-module.exports = DamageCalculator
+module.exports = Lask
