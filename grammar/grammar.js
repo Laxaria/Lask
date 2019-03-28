@@ -8,7 +8,7 @@ const moo = require('moo')
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
-const keys = ['raw', 'aff', 'hz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm']
+const keys = ['raw', 'aff', 'hz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup']
 const mhguAtkSkills = ['aus', 'aum', 'aul']
 const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps)
 

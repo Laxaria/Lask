@@ -91,7 +91,7 @@ const moo = require('moo')
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
-const keys = ['raw', 'aff', 'hz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm']
+const keys = ['raw', 'aff', 'hz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup']
 const mhguAtkSkills = ['aus', 'aum', 'aul']
 const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps)
 
@@ -1334,6 +1334,10 @@ const rawAffStruct = {
   'aul': (sk) => { sk.addRaw += 20; return true},
   'we': (sk) => { sk.WE = true; return true},
   'cb': (sk) => { sk.CB = true; return true},
+  'nup': (sk) => { sk.rawMult.push(1.1); return true},
+  'pup': (sk) => { sk.rawMult.push(1.1); return true},
+  'tsu': (sk) => { sk.rawMult.push(1.2); return true},
+  'sprdup': (sk) => { sk.rawMult.push(1.3); return true},
   'hz': (load, v) => { if (0 <= v && v <= 2) { load.m.rawHitzone = v * 100 } else {load.m.rawHitzone = v}; return true},
   'ce': (load, v) => { if (1 <= v && v <= 3) { load.sk.addAff += v * 10; return true} else {return 'MHGU Crit Eye ranges only from 1 - 3'}},
   'mv': (load, v) => { if (v <= 1.5) {load.wp.rawMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
@@ -1353,7 +1357,7 @@ const rawAffStruct = {
     }
   },
   'sharp': (load, v) => { load.sk.rawMult.push(sharpConstants[v]); return true},
-  'statics': ['aus', 'aum', 'aul', 'we', 'cb']
+  'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup']
 }
 
 function mhguSieve(payload, weapon, skills, monster) {
