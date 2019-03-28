@@ -45,7 +45,10 @@ const rawAffStruct = {
     }
   },
   'sharp': (load, v) => { load.sk.rawMult.push(sharpConstants[v]); return true},
-  'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup']
+  'lbg': (sk) => { sk.rawMult.push(1.3); return true},
+  'hbg': (sk) => { sk.rawMult.push(1.5); return true},
+  'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup'],
+  'weapons': ['lbg', 'hbg']
 }
 
 function mhguSieve(payload, weapon, skills, monster) {
@@ -56,7 +59,7 @@ function mhguSieve(payload, weapon, skills, monster) {
     m: monster,
   }
 
-  if (rawAffStruct['statics'].includes(payload.keyword)) {
+  if (rawAffStruct['statics'].includes(payload.keyword) || rawAffStruct['weapons'].includes(payload.weapon)) {
     return rawAffStruct[payload.keyword](load.sk)
   }
 

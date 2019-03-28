@@ -73,6 +73,10 @@ class CLIParser {
         case 'gdm':
         case 'ch':
         case 'sharp':
+        case 'tsu':
+        case 'pup':
+        case 'nup':
+        case 'sprdup':
           if ( ['ce', 'ch'].includes(structData.keyword)) {
             structData.operand = null
           } else if ( ['sharp'].includes(structData.keyword)) {
