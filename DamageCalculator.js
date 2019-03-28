@@ -26,7 +26,7 @@ class DamageCalculator {
     return output
   }
 
-  _effRawCalc() {
+  _effRawCalc(debug = true) {
     let raw = this.weapon.raw
     let addRaw = this.skills.addRaw
     let wepAff = this.weapon.affinity
@@ -34,7 +34,8 @@ class DamageCalculator {
 
     let addAff = this.skills.addAff
     let affMod = this.skills.critMod()
-    let rawMult = this.skills.rawMult
+    let rawMult = this.skills.getRawMult()
+    let stringRawMult = this.skills.rawMult.join(' * ')
 
     let monsterRawHZ = this.monster.rawHitzone
 
@@ -49,20 +50,29 @@ class DamageCalculator {
       return _totalAff
     }
 
-    let damageCalcString = `(${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${rawMult} * ${monsterRawHZ/100} * ${wepMV/100}`
-    console.log(damageCalcString)
+    let damageCalcString = `(${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${stringRawMult} * ${monsterRawHZ/100} * ${wepMV/100} * ${this.monster.globalDefMod}`
+    if (debug === true) {
+      console.log(damageCalcString)
+    }
     return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6)
   }
 
-  effectiveRawCalc() {
+  effectiveRawCalc(raw = false) {
     if (this.parse.quit === true) {
       return this.parse.errmsg
-    } else {
+    } 
+    if (raw === true) {
       if (this.monster.rawHitzone === 100) {
-        return `Effective Raw: ${this._effRawCalc()}`
+        return this._effRawCalc(false)
       } else if (this.monster.rawHitzone !== 100) {
-        return `Effective Damage: ${Math.floor(this._effRawCalc())}`
+        return Math.floor(Math.floor(this._effRawCalc(false)) * this.monster.globalDefMod)
       }
+    } else if (raw === false) {
+        if (this.monster.rawHitzone === 100) {
+          return `Effective Raw: ${this._effRawCalc()}`
+        } else if (this.monster.rawHitzone !== 100) {
+          return `Effective Damage: ${Math.floor(Math.floor(this._effRawCalc()) * this.monster.globalDefMod)}`
+        }
     }
   }
 }

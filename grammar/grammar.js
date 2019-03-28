@@ -16,11 +16,12 @@ var constructMetaObj = (a, b=null) => {
 	}
 }
 
+const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
-const keys = ['raw', 'aff', 'hz', 'mv', 'we', 'cb', 'au', 'ch', 'ce']
+const keys = ['raw', 'aff', 'hz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm']
 const mhguAtkSkills = ['aus', 'aum', 'aul']
-const totals = [].concat(mhguAtkSkills, weps, games, keys)
+const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps)
 
 const lexer = moo.compile({
 	myError: {match: /[\$?`]/, error: true},
@@ -32,6 +33,7 @@ const lexer = moo.compile({
 					wep: weps,
 					mhguAttackSkills: mhguAtkSkills,
 					key: keys,
+					sharp: sharps,
 				 }},
 	decimal: /\d{1,3}\.\d{1,3}/, 
   number: /[0-9]+/,
@@ -50,12 +52,12 @@ var grammar = {
     {"name": "SEGMENT", "symbols": ["VALUE", {"literal":" "}, "WORD"], "postprocess": (a) => { return [a[2].value, a[0]] }},
     {"name": "SEGMENT", "symbols": ["WORD", {"literal":" "}, "VALUE"], "postprocess": (a) => { return [a[0].value, a[2]] }},
     {"name": "SEGMENT", "symbols": ["WORD"], "postprocess": (a) => { return [a[0].value, {'value': null, 'operand': null} ] }},
+    {"name": "SEGMENT", "symbols": ["WORD", (lexer.has("ws") ? {type: "ws"} : ws), "WORD"], "postprocess": (a, d, r) => { if (a[0].text === 'sharp') {return [a[0].value, {'value': a[2].value, 'operand': null}]} else {return [a[2].value, {'value': a[0].value, 'operand': null}]}}},
     {"name": "SEGMENT", "symbols": ["WORD", "VALUE"], "postprocess": (a) => { return [a[0].value, a[1]] }},
     {"name": "WORD", "symbols": [(lexer.has("word") ? {type: "word"} : word)], "postprocess": (a) => {if (totals.includes(a[0].value)) {return a[0]} else {return {'value': null}}}},
     {"name": "VALUE", "symbols": ["NUMBER"], "postprocess": constructMetaObj(0)},
     {"name": "VALUE", "symbols": [(lexer.has("operand") ? {type: "operand"} : operand), "NUMBER"], "postprocess": constructMetaObj(1, 0)},
     {"name": "VALUE", "symbols": ["NUMBER", (lexer.has("operand") ? {type: "operand"} : operand)], "postprocess": constructMetaObj(0, 1)},
-    {"name": "VALUE", "symbols": [/[sml]/], "postprocess": constructMetaObj(0)},
     {"name": "NUMBER", "symbols": [(lexer.has("number") ? {type: "number"} : number)], "postprocess": id},
     {"name": "NUMBER", "symbols": [(lexer.has("decimal") ? {type: "decimal"} : decimal)], "postprocess": id}
 ]
