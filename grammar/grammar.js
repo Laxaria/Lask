@@ -13,53 +13,53 @@ const mhguAtkSkills = ['aus', 'aum', 'aul']
 const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps)
 
 const lexer = moo.compile({
-	myError: {match: /[\$?`]/, error: true},
-	ws: /[ \t]+/,	
+  myError: {match: /[\$?`]/, error: true},
+  ws: /[ \t]+/,  
   operand: /[\+\-x]/,
-	word: {match: /[a-z]+/,
-				 keyword: {
-					game: games,
-					wep: weps,
-					mhguAttackSkills: mhguAtkSkills,
-					key: keys,
-					sharp: sharps,
-				 }},
-	decimal: /\d{1,3}\.\d{1,3}/, 
+  word: {match: /[a-z]+/,
+         keyword: {
+          game: games,
+          wep: weps,
+          mhguAttackSkills: mhguAtkSkills,
+          key: keys,
+          sharp: sharps,
+         }},
+  decimal: /\d{1,3}\.\d{1,3}/, 
   number: /[0-9]+/,
   punctuaton: /[.,\/#!$%\^&\*;:{}=\-_`~()]+/,
 })
 
 let appendItems = (d, a, b) => {
-	return d[a].concat([d[b]])
+  return d[a].concat([d[b]])
 }
 
 let constructMetaObj = (a, b=null) => { 
-	return (d) => { 
-		if (b === null) {
-			return {'value': d[a].value, 'operand': null}
-		} else {
-		return {'value': d[a].value, 'operand': d[b].value}}
-	}
+  return (d) => { 
+    if (b === null) {
+      return {'value': d[a].value, 'operand': null}
+    } else {
+    return {'value': d[a].value, 'operand': d[b].value}}
+  }
 }
-	
+  
 let constructPartData = (a = null, b) => {
-	return (d) => {
-		if (a === null) {
-			return {'game': null, 'weapon': d[b].value}
-		} else {
-			return {'game': d[a].value, 'weapon': d[b].value}
-		}
-	}
+  return (d) => {
+    if (a === null) {
+      return {'game': null, 'weapon': d[b].value}
+    } else {
+      return {'game': d[a].value, 'weapon': d[b].value}
+    }
+  }
 }
 
 let validityCheck = (a) => {
-	return (d) => {
-		if (totals.includes(d[a].value)) {
-			return d[0]
-		} else {
-			return {'value': null}
-		}
-	}
+  return (d) => {
+    if (totals.includes(d[a].value)) {
+      return d[0]
+    } else {
+      return {'value': null}
+    }
+  }
 }
 
 

@@ -40,5 +40,5 @@ Lask parses for the following keywords:
 
 keyword      | effect
 ------------ | -------------
-`${number} we`         | MHGU: Add +50% affinity if connecting on a hitzone > 45 (Lask defaults to `HZ = 1` unless indicated otherwise with a `HZ` entry)
+`${number} we`         | MHGU: Add +50% affinity if connecting on a hitzone >= 0.45 (Lask defaults to `HZ = 1` unless indicated otherwise with a `HZ` entry)
 `${number} hz` | MHGU: Sets hitzone of monster part being hit

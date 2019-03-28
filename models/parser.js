@@ -90,7 +90,6 @@ class CLIParser {
 
   parser(cliString, weapon, skills, monster) {
     let results = this.getParsed(cliString)
-    // console.log(results)
 
     if (this.quit === true) {
       return false

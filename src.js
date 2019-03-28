@@ -1,4 +1,4 @@
-const DamageCalculator = require("./DamageCalculator")
+const Lask = require("./Lask")
 
 if(window.attachEvent) {
   window.attachEvent('onload', onstructPage);
@@ -57,7 +57,7 @@ function formFormer (element, elementText, formElement) {
 function submitData () {
   let elements = document.getElementById("mainformapp").elements;
   let dataPromise = new Promise ((resolve, reject) => {
-    let dmg = new DamageCalculator(elements['CLI'].value)
+    let dmg = new Lask(elements['CLI'].value)
     resolve(dmg)
   })
   dataPromise.then((value) => {
