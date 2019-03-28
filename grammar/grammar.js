@@ -5,17 +5,6 @@ function id(x) { return x[0]; }
 
 const moo = require('moo')
 
-var appendItem = function (a, b) { return function (d) { return d[a].concat([d[b]]); } }
-
-var constructMetaObj = (a, b=null) => { 
-	return (d) => { 
-		if (b === null) {
-			return {'value': d[a].value, 'operand': null}
-		} else {
-		return {'value': d[a].value, 'operand': d[b].value}}
-	}
-}
-
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
@@ -39,22 +28,61 @@ const lexer = moo.compile({
   number: /[0-9]+/,
   punctuaton: /[.,\/#!$%\^&\*;:{}=\-_`~()]+/,
 })
+
+let appendItems = (d, a, b) => {
+	return d[a].concat([d[b]])
+}
+
+let constructMetaObj = (a, b=null) => { 
+	return (d) => { 
+		if (b === null) {
+			return {'value': d[a].value, 'operand': null}
+		} else {
+		return {'value': d[a].value, 'operand': d[b].value}}
+	}
+}
+	
+let constructPartData = (a = null, b) => {
+	return (d) => {
+		if (a === null) {
+			return {'game': null, 'weapon': d[b].value}
+		} else {
+			return {'game': d[a].value, 'weapon': d[b].value}
+		}
+	}
+}
+
+let validityCheck = (a) => {
+	return (d) => {
+		if (totals.includes(d[a].value)) {
+			return d[0]
+		} else {
+			return {'value': null}
+		}
+	}
+}
+
+
 var grammar = {
     Lexer: lexer,
     ParserRules: [
-    {"name": "MAIN", "symbols": ["PREDATA", {"literal":":"}, (lexer.has("ws") ? {type: "ws"} : ws), "DATA"], "postprocess": function (a) {return {"game": a[0].game, "weapon": a[0].weapon, "data": a[3]}}},
-    {"name": "MAIN", "symbols": ["DATA"], "postprocess": function (a) {return {"game": null, "weapon": null, "data": a[0]}}},
-    {"name": "PREDATA", "symbols": [(lexer.has("word") ? {type: "word"} : word), (lexer.has("ws") ? {type: "ws"} : ws), "WEP"], "postprocess": (a) => {return {'game': a[0].value, 'weapon': a[2].value}}},
-    {"name": "PREDATA", "symbols": ["WEP"], "postprocess": (a) => {return {'game': null, 'weapon': a[0].value}}},
-    {"name": "WEP", "symbols": [(lexer.has("word") ? {type: "word"} : word)], "postprocess": id},
+    {"name": "MAIN$ebnf$1", "symbols": ["WS"], "postprocess": id},
+    {"name": "MAIN$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "MAIN", "symbols": ["PREDATA", {"literal":":"}, "MAIN$ebnf$1", "DATA"], "postprocess": (d) => {return {"game": d[0].game, "weapon": d[0].weapon, "data": d[d.length-1]}}},
+    {"name": "MAIN", "symbols": ["DATA"], "postprocess": (d) => {return {"game": null, "weapon": null, "data": d[0]}}},
+    {"name": "PREDATA", "symbols": [(lexer.has("word") ? {type: "word"} : word), (lexer.has("ws") ? {type: "ws"} : ws), (lexer.has("word") ? {type: "word"} : word)], "postprocess": constructPartData(0, 2)},
+    {"name": "PREDATA", "symbols": [(lexer.has("word") ? {type: "word"} : word)], "postprocess": constructPartData(null, 0)},
+    {"name": "WS", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": id},
     {"name": "DATA", "symbols": ["SEGMENT"]},
-    {"name": "DATA", "symbols": ["DATA", {"literal":","}, {"literal":" "}, "SEGMENT"], "postprocess": appendItem(0,3)},
-    {"name": "SEGMENT", "symbols": ["VALUE", {"literal":" "}, "WORD"], "postprocess": (a) => { return [a[2].value, a[0]] }},
-    {"name": "SEGMENT", "symbols": ["WORD", {"literal":" "}, "VALUE"], "postprocess": (a) => { return [a[0].value, a[2]] }},
-    {"name": "SEGMENT", "symbols": ["WORD"], "postprocess": (a) => { return [a[0].value, {'value': null, 'operand': null} ] }},
-    {"name": "SEGMENT", "symbols": ["WORD", (lexer.has("ws") ? {type: "ws"} : ws), "WORD"], "postprocess": (a, d, r) => { if (a[0].text === 'sharp') {return [a[0].value, {'value': a[2].value, 'operand': null}]} else {return [a[2].value, {'value': a[0].value, 'operand': null}]}}},
-    {"name": "SEGMENT", "symbols": ["WORD", "VALUE"], "postprocess": (a) => { return [a[0].value, a[1]] }},
-    {"name": "WORD", "symbols": [(lexer.has("word") ? {type: "word"} : word)], "postprocess": (a) => {if (totals.includes(a[0].value)) {return a[0]} else {return {'value': null}}}},
+    {"name": "DATA$ebnf$1", "symbols": ["WS"], "postprocess": id},
+    {"name": "DATA$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "DATA", "symbols": ["DATA", {"literal":","}, "DATA$ebnf$1", "SEGMENT"], "postprocess": (d) => appendItems(d, 0, d.length-1)},
+    {"name": "SEGMENT", "symbols": ["VALUE", "WS", "WORD"], "postprocess": (d) => { return [d[2].value, d[0]] }},
+    {"name": "SEGMENT", "symbols": ["WORD", "WS", "VALUE"], "postprocess": (d) => { return [d[0].value, d[2]] }},
+    {"name": "SEGMENT", "symbols": ["WORD"], "postprocess": (d) => { return [d[0].value, {'value': null, 'operand': null} ] }},
+    {"name": "SEGMENT", "symbols": ["WORD", (lexer.has("ws") ? {type: "ws"} : ws), "WORD"], "postprocess": (d) => { if (d[0].text === 'sharp') {return [d[0].value, {'value': d[2].value, 'operand': null}]} else {return [d[2].value, {'value': d[0].value, 'operand': null}]}}},
+    {"name": "SEGMENT", "symbols": ["WORD", "VALUE"], "postprocess": (d) => { return [d[0].value, d[1]] }},
+    {"name": "WORD", "symbols": [(lexer.has("word") ? {type: "word"} : word)], "postprocess": validityCheck(0)},
     {"name": "VALUE", "symbols": ["NUMBER"], "postprocess": constructMetaObj(0)},
     {"name": "VALUE", "symbols": [(lexer.has("operand") ? {type: "operand"} : operand), "NUMBER"], "postprocess": constructMetaObj(1, 0)},
     {"name": "VALUE", "symbols": ["NUMBER", (lexer.has("operand") ? {type: "operand"} : operand)], "postprocess": constructMetaObj(0, 1)},
