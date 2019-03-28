@@ -27,11 +27,15 @@ let TESTS = {
   },
   '7' : {
     'string': 'mhgu cb: 320 raw, 40 aff, 60 hz, 1.5x raw, we, cb, ce2, aus, aul, au7, +32 raw, +45 aff, 2.0x raw, 0.2x raw, ch2, ch+2, ce3, 0.22 mv',
-    'value': 42
+    'value': 46
   },
   '8' : {
-    'string': 'mhgu bow: 320 raw,40 aff,60 hz,1.5x raw,we,cb,0.22 mv,0.80 gdm',
-    'value': 68
+    'string': 'mhgu bow: 320 raw,40 aff,60 hz,1.5x raw,we,cb,0.22 mv,0.80 gdm, ce+3',
+    'value': 70
+  },
+  '9' : {
+    'string': '320 raw, 40 aff, 15 hz, we, purple sharp',
+    'value': 73
   },
 }
 

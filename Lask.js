@@ -65,7 +65,7 @@ class Lask {
       if (this.monster.rawHitzone === 100) {
         return this._effRawCalc(false)
       } else if (this.monster.rawHitzone !== 100) {
-        return Math.floor(Math.floor(this._effRawCalc(false)) * this.monster.globalDefMod)
+        return Math.floor(Math.floor(this._effRawCalc(true)) * this.monster.globalDefMod)
       }
     } else if (dmgOnly === false) {
         if (this.monster.rawHitzone === 100) {

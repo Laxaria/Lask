@@ -2,6 +2,15 @@ const nearley = require('nearley')
 const grammar = require('../grammar/grammar')
 const mhguSieve = require ('../utils/mhguUtils')
 
+class ParserOutputStruct { 
+  constructor(game, keyword, value, operand) {
+    this.game = game
+    this.keyword = keyword
+    this.value = value
+    this.operand = operand
+  }
+}
+
 class CLIParser {
   constructor() {
     this.maxLength = 300
@@ -9,15 +18,6 @@ class CLIParser {
     this.errmsg = '0'
   };
   
-  mhguParser(game, keyword, value, operand, weapon, skills, monster) {
-    // console.log(keyword)
-    let check = mhguSieve(game, keyword, value, operand, weapon, skills, monster)
-    if (check !== true) {
-      // console.log(keyword)
-      this.parseError(check)
-    }
-  }
-
   parser(cliString, weapon, skills, monster) {
     let results = this.getParsed(cliString)
 
@@ -57,6 +57,8 @@ class CLIParser {
       let value = row[1].value
       let keyword = row[0]
 
+      let structData = new ParserOutputStruct(game, keyword, value, operand)
+
       switch (keyword) {
         case 'raw':
         case 'aff':
@@ -67,17 +69,18 @@ class CLIParser {
         case 'cb': 
         case 'hz':
         case 'ce':
-          this.mhguParser(game, keyword, value, operand, weapon, skills, monster)
-          break
         case 'mv':
-          if (value <= 1) {
-            value *= 100
-          }
-          weapon.rawMotionValue = value
-          break
         case 'gdm':
-          if (0 <= value <= 1) {
-            monster.globalDefMod = parseFloat(value)
+        case 'ch':
+        case 'sharp':
+          if ( ['ce', 'ch'].includes(structData.keyword)) {
+            structData.operand = null
+          } else if ( ['sharp'].includes(structData.keyword)) {
+            structData.operand = null
+          }
+          let check = mhguSieve(structData, weapon, skills, monster)
+          if (check !== true) {
+            this.parseError(check)
           }
           break
         case null:
