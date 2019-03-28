@@ -6,12 +6,13 @@ Lask is a NodeJS app designed to take a string of text containing information ab
 
 ```
 >>> 100 raw, 0 aff, 15 hz, we, cb, AUL, 1.5x raw
-
 <<< Effective damage: 27
 
 >>> 320 raw, 40 aff, 15 hz, we
-
 <<< Effective damage: 52
+
+>>> mhgu bow: 220 raw, 40 aff, 60 hz, 1.5x raw, we, cb, 0.22 mv, 0.80 gdm
+<<< Effective damage: 47
 ```
 
 
@@ -22,3 +23,14 @@ Lask requires the following:
 ```
 nearley
 ```
+
+## Documentation
+
+### Keywords
+
+Lask parses for the following keywords:
+
+keyword      | effect
+------------ | -------------
+`${number} we`         | MHGU: Add +50% affinity if connecting on a hitzone > 45 (Lask defaults to `HZ = 1` unless indicated otherwise with a `HZ` entry)
+`${number} hz` | MHGU: Sets hitzone of monster part being hit
