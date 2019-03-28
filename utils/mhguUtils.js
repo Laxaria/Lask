@@ -45,8 +45,8 @@ const rawAffStruct = {
     }
   },
   'sharp': (load, v) => { load.sk.rawMult.push(sharpConstants[v]); return true},
-  'lbg': (sk) => { sk.rawMult.push(1.3); return true},
-  'hbg': (sk) => { sk.rawMult.push(1.5); return true},
+  'lbg': (load) => { if (load.wp.weaponMult === 1.0) {load.wp.weaponMult = 1.3; return true} else {return 'Failed to parse weapon multiplier'}},
+  'hbg': (load) => { if (load.wp.weaponMult === 1.0) {load.wp.weaponMult = 1.5; return true} else {return 'Failed to parse weapon multiplier'}},
   'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup'],
   'weapons': ['lbg', 'hbg']
 }
@@ -64,7 +64,7 @@ function mhguSieve(payload, weapon, skills, monster) {
   }
 
   if (rawAffStruct['weapons'].includes(weapon.name)) {
-    return rawAffStruct[weapon.name](load.sk)
+    return rawAffStruct[weapon.name](load)
   }
 
   if (['sharp'].includes(payload.keyword)) {

@@ -31,6 +31,7 @@ class Lask {
     let addRaw = this.skills.addRaw
     let wepAff = this.weapon.affinity
     let wepMV = this.weapon.rawMotionValue
+    let wepMult = this.weapon.weaponMult
 
     let addAff = this.skills.addAff
     let affMod = this.skills.critMod()
@@ -50,11 +51,11 @@ class Lask {
       return _totalAff
     }
 
-    let damageCalcString = `(${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${stringRawMult} * ${monsterRawHZ/100} * ${wepMV/100} * ${this.monster.globalDefMod}`
+    let damageCalcString = `${wepMult} * (${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${stringRawMult} * ${monsterRawHZ/100} * ${wepMV/100} * ${this.monster.globalDefMod}`
     if (debug === true) {
       console.log(damageCalcString)
     }
-    return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6)
+    return (wepMult * (raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6)
   }
 
   effectiveRawCalc(dmgOnly = false) {
