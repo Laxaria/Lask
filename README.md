@@ -26,6 +26,13 @@ nearley
 
 ## Documentation
 
+### Writing input
+
+Lask functions on MH shorthand. Give Lask a comma-space separated string for parsing. For example:
+
+* `320 raw, 40 aff, 15 hz, we` means a MH weapon with 320 base raw, 40 affinity, connecting on a 15 hitzone with WE (Weakness Exploit) as an armor skill.
+
+
 ### Keywords
 
 Lask parses for the following keywords:
