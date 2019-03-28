@@ -57,17 +57,17 @@ class DamageCalculator {
     return ((raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6)
   }
 
-  effectiveRawCalc(raw = false) {
+  effectiveRawCalc(dmgOnly = false) {
     if (this.parse.quit === true) {
       return this.parse.errmsg
     } 
-    if (raw === true) {
+    if (dmgOnly === true) {
       if (this.monster.rawHitzone === 100) {
         return this._effRawCalc(false)
       } else if (this.monster.rawHitzone !== 100) {
         return Math.floor(Math.floor(this._effRawCalc(false)) * this.monster.globalDefMod)
       }
-    } else if (raw === false) {
+    } else if (dmgOnly === false) {
         if (this.monster.rawHitzone === 100) {
           return `Effective Raw: ${this._effRawCalc()}`
         } else if (this.monster.rawHitzone !== 100) {
