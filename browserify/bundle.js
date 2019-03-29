@@ -11,19 +11,21 @@ class Lask {
     this.skills = new Skills()
     this.parse = new CLIParser()
     this.monster = new Monster()
-    this.parse.parser(this.cliString, this.weapon, this.skills, this.monster)
+    this.parse.parse(this.cliString, this.weapon, this.skills, this.monster)
   }
 
   weaponStats() {
     let output = {
       "raw": this.weapon.raw + this.skills.addRaw,
+      "ele": this.weapon.element,
       "affinity": this.weapon.affinity,
       "crit boost": this.skills.CB,
       "raw mults": this.skills.rawMult,
       "add affinity": this.skills.addAff,
       "monster raw hitzone": this.monster.rawHitzone,
-      "monster element hitzone": this.monster.elmHitzone,
-      "weapon mult": this.weapon.weaponMult
+      "monster element hitzone": this.monster.eleHitzone,
+      "weapon mult": this.weapon.weaponMult,
+      'weapon ele crit': this.weapon.eleCritMult
     }
     return output
   }
@@ -38,7 +40,7 @@ class Lask {
     let addAff = this.skills.addAff
     let affMod = this.skills.critMod()
     let rawMult = this.skills.getRawMult()
-    let stringRawMult = this.skills.rawMult.join(' * ')
+    let stringRawMult = '* ' + this.skills.rawMult.join(' * ')
 
     let monsterRawHZ = this.monster.rawHitzone
 
@@ -53,11 +55,35 @@ class Lask {
       return _totalAff
     }
 
-    let damageCalcString = `${wepMult} * (${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${stringRawMult} * ${monsterRawHZ/100} * ${wepMV/100} * ${this.monster.globalDefMod}`
+    let damageCalcString = `${wepMult} * (${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) ${stringRawMult} * ${monsterRawHZ/100} * ${wepMV/100} * ${this.monster.globalDefMod}`
     if (debug === true) {
       console.log(damageCalcString)
     }
-    return (wepMult * (raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6)
+    return parseFloat((wepMult * (raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6))
+  }
+
+  _effEleCalc(debug = true) {
+    let wepEle = this.weapon.element
+    let wepEleCritMult = this.weapon.eleCritMult
+
+    let eleHZ = this.monster.eleHitzone
+    let totalAff = () => {
+      let _totalAff = this.skills.addAff + this.weapon.affinity
+      if (this.monster.rawHitzone >= 45 && this.skills.WE === true) {
+        _totalAff += 50
+      }
+      if (_totalAff >= 100) {
+        _totalAff = 100
+      }
+      return _totalAff
+    }
+
+    let eleDmgString = `${wepEle} * (1 + ${totalAff()/100} * ${wepEleCritMult}) * ${eleHZ/100}`
+    if (debug) {
+      console.log(eleDmgString)
+    }
+    let result = wepEle * (1 + totalAff()/100 * wepEleCritMult) * eleHZ/100
+    return result
   }
 
   effectiveRawCalc(dmgOnly = false) {
@@ -66,9 +92,9 @@ class Lask {
     } 
     if (dmgOnly === true) {
       if (this.monster.rawHitzone === 100) {
-        return this._effRawCalc(false)
+        return this._effRawCalc(false) + this._effEleCalc(false)
       } else if (this.monster.rawHitzone !== 100) {
-        return Math.floor(Math.floor(this._effRawCalc(true)) * this.monster.globalDefMod)
+        return Math.floor(Math.floor(this._effRawCalc(false) + this._effEleCalc(false)) * this.monster.globalDefMod)
       }
     } else if (dmgOnly === false) {
         if (this.monster.rawHitzone === 100) {
@@ -93,9 +119,10 @@ const moo = require('moo')
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
-const keys = ['raw', 'aff', 'hz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup']
+const keys = ['raw', 'aff', 'hz', 'ehz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp']
 const mhguAtkSkills = ['aus', 'aum', 'aul']
-const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps)
+const elements = ['fire', 'ice', 'water', 'thunder', 'dragon', 'thun', 'dra', 'ele', 'eatk', 'eleattack', 'elemental', 'critele', 'elecrit']
+const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps, elements)
 
 const lexer = moo.compile({
   myError: {match: /[\$?`]/, error: true},
@@ -108,6 +135,7 @@ const lexer = moo.compile({
           mhguAttackSkills: mhguAtkSkills,
           key: keys,
           sharp: sharps,
+          element: elements,
          }},
   decimal: /\d{1,3}\.\d{1,3}/, 
   number: /[0-9]+/,
@@ -187,7 +215,7 @@ if (typeof module !== 'undefined'&& typeof module.exports !== 'undefined') {
 class Monster {
   constructor() {
     this.rawHitzone = 100
-    this.elmHitzone = 100
+    this.eleHitzone = 100
     this.globalDefMod = 1
   }
 }
@@ -196,11 +224,8 @@ module.exports = Monster
 },{}],4:[function(require,module,exports){
 const nearley = require('nearley')
 const grammar = require('../grammar/grammar')
-const MHGUSieve = require ('../utils/mhguUtils')
 
-const Sieve = new MHGUSieve()
-
-class ParserOutputStruct { 
+class ParserOutput { 
   constructor(game, keyword, value, operand) {
     this.game = game
     this.keyword = keyword
@@ -214,25 +239,13 @@ class CLIParser {
     this.maxLength = 300
     this.quit = false
     this.errmsg = '0'
+    this.Sieve 
   };
   
-  parser(cliString, weapon, skills, monster) {
+  parse(cliString, weapon, skills, monster) {
     let results = this.getParsed(cliString)
 
-    if (this.quit === true) {
-      return false
-    }
-
-    if (typeof results === 'undefined') {
-      this.parseError('Failed to parse due to error in submission string')
-      return false
-    } else {}
-
-    if (results.length > 1) {
-      console.log(results.length)
-      this.parseError('Failed to parse due to ambiguity in submission string. Report string to https://github.com/Laxaria/Lask')
-      return false
-    } else {}
+    if (this.quit === true) { return }
 
     let data = results[0]
     let game = (function() {
@@ -242,8 +255,12 @@ class CLIParser {
         return data['game']
       }
     })()
-
+    if (game === 'mhgu') {
+      const MHGUSieve = require ('../utils/mhguUtils')
+      this.Sieve = new MHGUSieve ()
+    }
     weapon.name = data['weapon']
+    this.Sieve.wepSieve(weapon)
 
     let parsedData = data['data']
 
@@ -254,43 +271,24 @@ class CLIParser {
       let operand = row[1].operand
       let value = row[1].value
       let keyword = row[0]
-
-      let structData = new ParserOutputStruct(game, keyword, value, operand)
+      let structData = new ParserOutput(game, keyword, value, operand)
 
       switch (keyword) {
-        case 'raw':
-        case 'aff':
-        case 'aus':
-        case 'aum':
-        case 'aul':
-        case 'we':
-        case 'cb': 
-        case 'hz':
+        case null:
+          this.parseError('There was a parser error, likely due to a string not triggering a keyword.')
+          break
+        case 'au':
         case 'ce':
-        case 'mv':
-        case 'gdm':
         case 'ch':
         case 'sharp':
-        case 'tsu':
-        case 'pup':
-        case 'nup':
-        case 'sprdup':
-          if ( ['ce', 'ch'].includes(structData.keyword)) {
-            structData.operand = null
-          } else if ( ['sharp'].includes(structData.keyword)) {
-            structData.operand = null
-          }
-          let check = Sieve.sieve(structData, weapon, skills, monster)
+          structData.operand = null
+        default:
+          let check = this.Sieve.sieve(structData, weapon, skills, monster)
           if (check !== true) {
             this.parseError(check)
           }
           break
-        case null:
-          this.parseError("There was an error with parsing, likely because of a unmatched string")
-          break
-        default:
-          break
-      }
+        }
     }
   }
 
@@ -299,30 +297,24 @@ class CLIParser {
       this.parseError(`Input string is too long. Max is ${this.maxLength} characters`)
     }
     const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar))
-    let errOffset
     try {
       parser.feed(cliString.toLowerCase().trim())
-    } catch(err) {
-      errOffset = err.token.offset
-    }
-    if (errOffset === 'undefined') {
-      this.parseError('Failed to parse due to error in submission string')
-      return
-    } else if (errOffset >= 0) {
-        if (errOffset === 0) {
-          errOffset = 3
-          this.parseError(`Error somewhere around \`${cliString.slice(errOffset-3, errOffset+3)}\``)
-          return false
-        }
+      if (parser.results.length === 1) {
+        return parser.results
       } else {
-      return parser.results
+        this.parseError('Failed to parse due to ambiguity in submission string. Report string to https://github.com/Laxaria/Lask')
+        return null
+      }
+    } catch (err) {
+      this.parseError('Failed to parse')
+      return null
     }
   }
 
   parseError(errmsg) {
     this.quit = true
     this.errmsg = errmsg
-    return
+    return null
   }
 }
 
@@ -335,6 +327,7 @@ class Skills {
     this.addRaw = 0
     this.addAff = 0
     this.rawMult = []
+
   }
   critMod() {
     if (this.CB === false) {
@@ -369,12 +362,19 @@ class Weapon {
     this.rawMotionValue = 100
     this.name = ''
     this.weaponMult = 1.0
+    this.eleCritMult = 0
   }
   set raw(val) {
     this._raw = val
   }
   get raw() {
     return this._raw
+  }
+  set element(val) {
+    this._element = val
+  }
+  get element() {
+    return this._element
   }
   set affinity(val) {
     this._affinity = val
@@ -1335,6 +1335,7 @@ class MHGUSieve {
     this.switchCase = {
       'raw': (load, v) => { if (load.wp.raw === 0) {load.wp.raw = v; return true} else {return 'Weapon raw assigned more than once'}},
       'aff': (load, v) => { if (load.wp.affinity === 0) {load.wp.affinity = v; return true} else {return 'Weapon affinity assigned more than once'}},
+      'ele': (load, v) => { if (load.wp.element === 0) {load.wp.element = v; return true} else {return 'Weapon element assigned more than once'}},
       '+raw': (load, v) => { load.sk.addRaw += v; return true},
       '-raw': (load, v) => { load.sk.addRaw -= v; return true},
       'xraw': (load, v) => { load.sk.rawMult.push(v); return true},
@@ -1344,6 +1345,7 @@ class MHGUSieve {
       'aus': (sk) => { sk.addRaw += 10; return true},
       'aum': (sk) => { sk.addRaw += 15; return true},
       'aul': (sk) => { sk.addRaw += 20; return true},
+      'pp': (sk) => { sk.addRaw += 20; return true},
       'we': (sk) => { sk.WE = true; return true},
       'cb': (sk) => { sk.CB = true; return true},
       'nup': (sk) => { sk.rawMult.push(1.1); return true},
@@ -1351,6 +1353,7 @@ class MHGUSieve {
       'tsu': (sk) => { sk.rawMult.push(1.2); return true},
       'sprdup': (sk) => { sk.rawMult.push(1.3); return true},
       'hz': (load, v) => { if (0 <= v && v <= 2) { load.m.rawHitzone = v * 100 } else {load.m.rawHitzone = v}; return true},
+      'ehz': (load, v) => { if (0 <= v && v <= 2) { load.m.eleHitzone = v * 100 } else {load.m.eleHitzone = v}; return true},
       'ce': (load, v) => { if (1 <= v && v <= 3) { load.sk.addAff += v * 10; return true} else {return 'MHGU Crit Eye ranges only from 1 - 3'}},
       'mv': (load, v) => { if (v <= 1.5) {load.wp.rawMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
       'gdm': (load, v) => { if (v >= 1.5) {return 'Global Def Mod value should be less than 1~'} else {load.m.globalDefMod = v; return true}},
@@ -1365,44 +1368,76 @@ class MHGUSieve {
             load.sk.addRaw += 20 
             return true
           default:
-          return 'Challenge can only be at level 1 or level 2'
+            return 'Challenge can only be at level 1 or level 2'
         }
       },
       'sharp': (load, v) => { load.sk.rawMult.push(this.sharpConstants[v]); return true},
-      'lbg': (load) => { if (load.wp.weaponMult === 1.0) {load.wp.weaponMult = 1.3;}},
-      'hbg': (load) => { if (load.wp.weaponMult === 1.0) {load.wp.weaponMult = 1.5;}},
-      'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup'],
-      'weapons': ['lbg', 'hbg']
+      'lbg': (wp) => { wp.weaponMult = 1.3; wp.eleCritMult = 1.3; return true},
+      'hbg': (wp) => { wp.weaponMult = 1.5; wp.eleCritMult = 1.30; return true},
+      'sns': (wp) => { wp.weaponMult = 1.05; wp.eleCritMult = 1.35 ;return true},
+      'bow': (wp) => { wp.eleCritMult = 1.35 ;return true},
+      'db': (wp) => { wp.eleCritMult = 1.35 ;return true},
+      'gs': (wp) => { wp.eleCritMult = 1.35 ;return true},
+      'elecrit' (wp) { 
+        switch (wp.name) {
+          case 'lbg':
+          case 'hbg':
+            wp.eleCritMult = 0.3
+            return true
+          case 'bow':
+          case 'sns':
+          case 'db':
+          case 'dbs':
+            wp.eleCritMult = 0.35
+            return true
+          case 'gs':
+            wp.eleCritMult = 0.3
+            return true
+          default:
+            wp.eleCritMult = 0.25
+        }
+      },
+      'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup', 'pp'],
+      'weaponstats': ['elecrit'],
+      'weapons': ['lbg', 'hbg', 'sns', 'bow', 'gs', 'db'],
+      'elements': ['fire', 'water', 'ice', 'thunder', 'dra', 'thun'],
     }
   }
-  sieve (payload = null, weapon = null, skills = null, monster = null) {
+  wepSieve (weapon) {
+    if (this.switchCase['weapons'].includes(weapon.name)) {
+      this.switchCase[weapon.name](weapon)
+    }
+  }
+  sieve (parsedData = null, weapon = null, skills = null, monster = null) {
     let load = {
       wp: weapon,
       sk: skills,
       m: monster,
     }
   
-    if (this.switchCase['statics'].includes(payload.keyword)) {
-      return this.switchCase[payload.keyword](load.sk)
-    } else if (weapon.weaponMult === 1.0 && this.switchCase['weapons'].includes(weapon.name)) {
-      this.switchCase[weapon.name](load)
-    } else if (['sharp'].includes(payload.keyword)) {
-      return this.switchCase[payload.keyword](load, payload.value)
+    if (this.switchCase['statics'].includes(parsedData.keyword)) {
+      return this.switchCase[parsedData.keyword](load.sk)
+    } else if (['sharp'].includes(parsedData.keyword)) {
+      return this.switchCase[parsedData.keyword](load, parsedData.value)
+    } else if (this.switchCase['elements'].includes(parsedData.keyword)) {
+      return this.switchCase['ele'](load, parsedData.value)
+    } else if (this.switchCase['weaponstats'].includes(parsedData.keyword)) {
+      return this.switchCase[parsedData.keyword](load.wp)
     }
   
-    if (payload.value !== null) {
-      if (payload.value.includes('.')) {
-        payload.value = parseFloat(payload.value)
+    if (parsedData.value !== null) {
+      if (parsedData.value.includes('.')) {
+        parsedData.value = parseFloat(parsedData.value)
       } else {
-        payload.value = parseInt(payload.value)
+        parsedData.value = parseInt(parsedData.value)
       }
     } else {
-      return `Unable to parse value associated with ${payload.keyword}`
+      return `Unable to parse value associated with ${parsedData.keyword}`
     }
   
-    if (payload.operand === null) {payload.operand = ''}
+    if (parsedData.operand === null) {parsedData.operand = ''}
   
-    return this.switchCase[payload.operand+payload.keyword](load, payload.value)
+    return this.switchCase[parsedData.operand+parsedData.keyword](load, parsedData.value)
   }
 }
 

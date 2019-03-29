@@ -10,19 +10,21 @@ class Lask {
     this.skills = new Skills()
     this.parse = new CLIParser()
     this.monster = new Monster()
-    this.parse.parser(this.cliString, this.weapon, this.skills, this.monster)
+    this.parse.parse(this.cliString, this.weapon, this.skills, this.monster)
   }
 
   weaponStats() {
     let output = {
       "raw": this.weapon.raw + this.skills.addRaw,
+      "ele": this.weapon.element,
       "affinity": this.weapon.affinity,
       "crit boost": this.skills.CB,
       "raw mults": this.skills.rawMult,
       "add affinity": this.skills.addAff,
       "monster raw hitzone": this.monster.rawHitzone,
-      "monster element hitzone": this.monster.elmHitzone,
-      "weapon mult": this.weapon.weaponMult
+      "monster element hitzone": this.monster.eleHitzone,
+      "weapon mult": this.weapon.weaponMult,
+      'weapon ele crit': this.weapon.eleCritMult
     }
     return output
   }
@@ -37,7 +39,7 @@ class Lask {
     let addAff = this.skills.addAff
     let affMod = this.skills.critMod()
     let rawMult = this.skills.getRawMult()
-    let stringRawMult = this.skills.rawMult.join(' * ')
+    let stringRawMult = '* ' + this.skills.rawMult.join(' * ')
 
     let monsterRawHZ = this.monster.rawHitzone
 
@@ -52,11 +54,35 @@ class Lask {
       return _totalAff
     }
 
-    let damageCalcString = `${wepMult} * (${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) * ${stringRawMult} * ${monsterRawHZ/100} * ${wepMV/100} * ${this.monster.globalDefMod}`
+    let damageCalcString = `${wepMult} * (${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) ${stringRawMult} * ${monsterRawHZ/100} * ${wepMV/100} * ${this.monster.globalDefMod}`
     if (debug === true) {
       console.log(damageCalcString)
     }
-    return (wepMult * (raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6)
+    return parseFloat((wepMult * (raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6))
+  }
+
+  _effEleCalc(debug = true) {
+    let wepEle = this.weapon.element
+    let wepEleCritMult = this.weapon.eleCritMult
+
+    let eleHZ = this.monster.eleHitzone
+    let totalAff = () => {
+      let _totalAff = this.skills.addAff + this.weapon.affinity
+      if (this.monster.rawHitzone >= 45 && this.skills.WE === true) {
+        _totalAff += 50
+      }
+      if (_totalAff >= 100) {
+        _totalAff = 100
+      }
+      return _totalAff
+    }
+
+    let eleDmgString = `${wepEle} * (1 + ${totalAff()/100} * ${wepEleCritMult}) * ${eleHZ/100}`
+    if (debug) {
+      console.log(eleDmgString)
+    }
+    let result = wepEle * (1 + totalAff()/100 * wepEleCritMult) * eleHZ/100
+    return result
   }
 
   effectiveRawCalc(dmgOnly = false) {
@@ -65,9 +91,9 @@ class Lask {
     } 
     if (dmgOnly === true) {
       if (this.monster.rawHitzone === 100) {
-        return this._effRawCalc(false)
+        return this._effRawCalc(false) + this._effEleCalc(false)
       } else if (this.monster.rawHitzone !== 100) {
-        return Math.floor(Math.floor(this._effRawCalc(true)) * this.monster.globalDefMod)
+        return Math.floor(Math.floor(this._effRawCalc(false) + this._effEleCalc(false)) * this.monster.globalDefMod)
       }
     } else if (dmgOnly === false) {
         if (this.monster.rawHitzone === 100) {

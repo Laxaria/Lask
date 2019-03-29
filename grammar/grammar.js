@@ -8,9 +8,10 @@ const moo = require('moo')
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
-const keys = ['raw', 'aff', 'hz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup']
+const keys = ['raw', 'aff', 'hz', 'ehz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp']
 const mhguAtkSkills = ['aus', 'aum', 'aul']
-const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps)
+const elements = ['fire', 'ice', 'water', 'thunder', 'dragon', 'thun', 'dra', 'ele', 'eatk', 'eleattack', 'elemental', 'critele', 'elecrit']
+const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps, elements)
 
 const lexer = moo.compile({
   myError: {match: /[\$?`]/, error: true},
@@ -23,6 +24,7 @@ const lexer = moo.compile({
           mhguAttackSkills: mhguAtkSkills,
           key: keys,
           sharp: sharps,
+          element: elements,
          }},
   decimal: /\d{1,3}\.\d{1,3}/, 
   number: /[0-9]+/,

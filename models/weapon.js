@@ -7,12 +7,19 @@ class Weapon {
     this.rawMotionValue = 100
     this.name = ''
     this.weaponMult = 1.0
+    this.eleCritMult = 0
   }
   set raw(val) {
     this._raw = val
   }
   get raw() {
     return this._raw
+  }
+  set element(val) {
+    this._element = val
+  }
+  get element() {
+    return this._element
   }
   set affinity(val) {
     this._affinity = val

@@ -1,7 +1,7 @@
 class Monster {
   constructor() {
     this.rawHitzone = 100
-    this.elmHitzone = 100
+    this.eleHitzone = 100
     this.globalDefMod = 1
   }
 }
