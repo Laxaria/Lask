@@ -1,6 +1,8 @@
 const nearley = require('nearley')
 const grammar = require('../grammar/grammar')
-const mhguSieve = require ('../utils/mhguUtils')
+const MHGUSieve = require ('../utils/mhguUtils')
+
+const Sieve = new MHGUSieve()
 
 class ParserOutputStruct { 
   constructor(game, keyword, value, operand) {
@@ -45,8 +47,7 @@ class CLIParser {
       }
     })()
 
-    let wep = data['weapon']
-    weapon.name = wep
+    weapon.name = data['weapon']
 
     let parsedData = data['data']
 
@@ -83,7 +84,7 @@ class CLIParser {
           } else if ( ['sharp'].includes(structData.keyword)) {
             structData.operand = null
           }
-          let check = mhguSieve(structData, weapon, skills, monster)
+          let check = Sieve.sieve(structData, weapon, skills, monster)
           if (check !== true) {
             this.parseError(check)
           }

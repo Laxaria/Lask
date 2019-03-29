@@ -34,8 +34,8 @@ let TESTS = {
     'value': 70
   },
   '9' : {
-    'string': 'lbg: 320 raw, 40 aff, 15 hz, we, purple sharp',
-    'value': 73
+    'string': 'lbg: 40 aff, 15 hz, we, purple sharp, 320 raw',
+    'value': 95
   },
 }
 
