@@ -34,8 +34,8 @@ let TESTS = {
     'value': 70
   },
   '9' : {
-    'string': 'hbg: 40 aff, 15 hz, we, purple sharp, 320 raw, sprdup',
-    'value': 95/1.3*1.3*1.5
+    'string': 'hbg: 40 aff, 15 hz, we, 320 raw, sprdup',
+    'value': 102
   },
   '10' : {
     'string': '320 raw',
@@ -57,17 +57,34 @@ let TESTS = {
     'string': 'bow: 100 fire, 100 aff, 100 ehz, elecrit',
     'value': 100 * 1.35
   },
+  '14' : {
+    'string': 'db: 100 raw, 10 fire, 0.28 mv, we, cb, 40 aff, 45 hz, 20 ehz, white sharp, elecrit',
+    'value': 25
+  },
+  '15' : {
+    'string': 'db: 40 thun, eatk2, white sharp, 100 aff, critele, elemental, 1.3x ele',
+    'value': 106
+  },
+  '16' : {
+      'string': 'gs: critdraw, 320 raw, purple sharp, 0.5 hz',
+      'value': 278
+  },
+  '17' : {
+    'string': 'lbg: 320 raw, ch+2, .69 emv, elemental, eatk2, .05 mv, 40 hz, 20 ehz',
+    'value': 66
+}
 }
 
 Object.entries(TESTS).forEach(([test, data]) => {
-  // console.log('---')
-  let dmgCalc = new Lask(data['string'])
-  let output = dmgCalc.effectiveRawCalc(true)
-  if ( dmgCalc.parse.errmsg.length > 2 && (data['value'] === 'fail') ) {
-    // console.log('Success')
+  console.log('---')
+  let dmgCalc = new Lask()
+  dmgCalc.parseString(data['string'])
+  let output = dmgCalc.effectiveDmgCalc(true)
+  if ( dmgCalc.parser.errmsg.length > 2 && (data['value'] === 'fail') ) {
+    console.log('Success')
   }
   else if (Math.abs(output - data['value']) <= 1) {
-    // console.log('Success')
+    console.log('Success')
   } else {
     console.log(JSON.stringify(dmgCalc.weaponStats(), null, 2))
     console.log(output)

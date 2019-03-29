@@ -57,12 +57,13 @@ function formFormer (element, elementText, formElement) {
 function submitData () {
   let elements = document.getElementById("mainformapp").elements;
   let dataPromise = new Promise ((resolve, reject) => {
-    let dmg = new Lask(elements['CLI'].value)
+    let dmg = new Lask()
+    dmg.parseString(elements['CLI'].value)
     resolve(dmg)
   })
   dataPromise.then((value) => {
     console.log(value.weaponStats())
-    let str = `${value.effectiveRawCalc()} \n ----`
+    let str = `${value.effectiveDmgCalc()} \n ----`
     let subDiv = document.createElement("div");
     subDiv.innerText = str;
     document.getElementById("output_div").prepend(subDiv);

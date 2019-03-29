@@ -5,7 +5,9 @@ class Skills {
     this.addRaw = 0
     this.addAff = 0
     this.rawMult = []
-
+    this.eleMult = []
+    this.eleAttack = 0
+    this.elemental = false
   }
   critMod() {
     if (this.CB === false) {
@@ -26,6 +28,16 @@ class Skills {
       })
       return multiplier
     }
+  }
+  getEleMult() {
+    let multiplier = 1.0
+    if (this.eleMult.length === 0) {
+      return multiplier
+    } else {
+      this.eleMult.forEach( (i) => {
+        multiplier *= i
+      })
+    } return multiplier
   }
 }
 

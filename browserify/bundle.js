@@ -5,66 +5,87 @@ const Skills = require("./models/skills")
 const Monster = require("./models/monster")
 
 class Lask {
-  constructor (cliString) {
-    this.cliString = cliString.toLowerCase()
+  constructor () {
     this.weapon = new Weapon()
     this.skills = new Skills()
-    this.parse = new CLIParser()
+    this.parser = new CLIParser()
     this.monster = new Monster()
-    this.parse.parse(this.cliString, this.weapon, this.skills, this.monster)
+  }
+
+  parseString(cliString) {
+    this.parser.parse(cliString.toLowerCase().trim(), this.weapon, this.skills, this.monster)
   }
 
   weaponStats() {
-    let output = {
-      "raw": this.weapon.raw + this.skills.addRaw,
-      "ele": this.weapon.element,
-      "affinity": this.weapon.affinity,
-      "crit boost": this.skills.CB,
-      "raw mults": this.skills.rawMult,
-      "add affinity": this.skills.addAff,
-      "monster raw hitzone": this.monster.rawHitzone,
-      "monster element hitzone": this.monster.eleHitzone,
-      "weapon mult": this.weapon.weaponMult,
-      'weapon ele crit': this.weapon.eleCritMult
-    }
+    // let output = {
+    //   "raw": this.weapon.raw + this.skills.addRaw,
+    //   "ele": this.weapon.calcWpElement(this.skills),
+    //   "affinity": this.weapon.affinity,
+    //   "crit boost": this.skills.CB,
+    //   "raw mults": this.skills.rawMult,
+    //   "add affinity": this.skills.addAff,
+    //   "monster raw hitzone": this.monster.rawHitzone,
+    //   "monster element hitzone": this.monster.eleHitzone,
+    //   "weapon mult": this.weapon.rawMult,
+    //   'weapon eleMult': this.weapon.eleMult,
+    //   'weapon ele crit': this.weapon.eleCritMult
+    // }
+    let output = this
     return output
   }
 
-  _effRawCalc(debug = true) {
-    let raw = this.weapon.raw
-    let addRaw = this.skills.addRaw
-    let wepAff = this.weapon.affinity
-    let wepMV = this.weapon.rawMotionValue
-    let wepMult = this.weapon.weaponMult
+  _rawCalculations (debug = false) {
+    let wpRaw = this.weapon.raw
+    let wpAddRaw = this.skills.addRaw
+    let wpAff = this.weapon.affinity
+    let wpAddAff = this.skills.addAff
+    let wpMV = this.weapon.rawMotionValue
+    let wpMult = this.weapon.rawMult
+    let wpSharpMult = this.weapon.sharpRaw
+    let skAffMod = this.skills.critMod()
+    let wpRawMults = this.skills.getRawMult()
+    let mRawHZ = this.monster.rawHitzone
 
-    let addAff = this.skills.addAff
-    let affMod = this.skills.critMod()
-    let rawMult = this.skills.getRawMult()
-    let stringRawMult = '* ' + this.skills.rawMult.join(' * ')
-
-    let monsterRawHZ = this.monster.rawHitzone
-
-    let totalAff = () => {
-      let _totalAff = addAff + wepAff
-      if (monsterRawHZ >= 45 && this.skills.WE === true) {
+    let wpTotalAff = () => {
+      let _totalAff = wpAff + wpAddAff
+      if (mRawHZ >= 45 && this.skills.WE === true) {
         _totalAff += 50
       }
-      if (_totalAff >= 100) {
+      if (_totalAff > 100) {
         _totalAff = 100
       }
       return _totalAff
     }
 
-    let damageCalcString = `${wepMult} * (${raw} + ${addRaw}) * (1 + ${totalAff()/100} * ${affMod}) ${stringRawMult} * ${monsterRawHZ/100} * ${wepMV/100} * ${this.monster.globalDefMod}`
-    if (debug === true) {
-      console.log(damageCalcString)
+    let _strWpRawMults = () => {
+      let _skRawMult = this.skills.rawMult
+      if (_skRawMult.length === 0) {
+        return ''
+      } else {
+        return ' * ' + _skRawMult.join(' * ')
+      }
     }
-    return parseFloat((wepMult * (raw + addRaw) * (1 + totalAff()/100 * affMod) * rawMult * monsterRawHZ/100 * wepMV/100).toPrecision(6))
+
+    let _totRaw = wpRaw + wpAddRaw
+    if (this.weapon.nullRaw === true && this.weapon.rawMotionValue === 100) {
+      _totRaw = 0 
+    }
+    let _totAff = wpTotalAff()
+    
+    let dmgString = 
+      `${wpMult} * ${wpSharpMult} * ${_totRaw} * (1 + ${_totAff/100} * ${skAffMod})${_strWpRawMults()} * ${wpMV/100} * ${mRawHZ/100}`
+    if (debug) {
+      console.log(dmgString)
+    }
+    let dmg = parseFloat(wpMult * wpSharpMult * _totRaw * (1 + _totAff/100 * skAffMod) * wpRawMults * wpMV/100 * mRawHZ/100)
+    return dmg
   }
 
   _effEleCalc(debug = true) {
-    let wepEle = this.weapon.element
+    let wepEle = this.weapon.calcWpElement(this.skills)
     let wepEleCritMult = this.weapon.eleCritMult
+    let wepSharpEleMod = this.weapon.sharpEle
+    let eleMults = this.skills.getEleMult()
 
     let eleHZ = this.monster.eleHitzone
     let totalAff = () => {
@@ -78,29 +99,29 @@ class Lask {
       return _totalAff
     }
 
-    let eleDmgString = `${wepEle} * (1 + ${totalAff()/100} * ${wepEleCritMult}) * ${eleHZ/100}`
+    let eleDmgString = `${wepSharpEleMod} * ${wepEle} * (1 + ${totalAff()/100} * ${wepEleCritMult}) * ${eleMults} * ${eleHZ/100}`
     if (debug) {
       console.log(eleDmgString)
     }
-    let result = wepEle * (1 + totalAff()/100 * wepEleCritMult) * eleHZ/100
-    return result
+    let result = wepSharpEleMod * wepEle * (1 + totalAff()/100 * wepEleCritMult) * eleMults * eleHZ/100
+    return parseFloat(result)
   }
 
-  effectiveRawCalc(dmgOnly = false) {
-    if (this.parse.quit === true) {
-      return this.parse.errmsg
+  effectiveDmgCalc(dmgOnly = false) {
+    if (this.parser.quit === true) {
+      return this.parser.errmsg
     } 
     if (dmgOnly === true) {
       if (this.monster.rawHitzone === 100) {
-        return this._effRawCalc(false) + this._effEleCalc(false)
+        return this._effEleCalc(true) + this._rawCalculations(true)
       } else if (this.monster.rawHitzone !== 100) {
-        return Math.floor(Math.floor(this._effRawCalc(false) + this._effEleCalc(false)) * this.monster.globalDefMod)
+        return Math.floor(Math.floor(this._effEleCalc(true) + this._rawCalculations(true)) * this.monster.globalDefMod)
       }
     } else if (dmgOnly === false) {
         if (this.monster.rawHitzone === 100) {
-          return `Effective Raw: ${this._effRawCalc()}`
+          return `Effective Damage:  ${this._effEleCalc() + this._rawCalculations()}`
         } else if (this.monster.rawHitzone !== 100) {
-          return `Effective Damage: ${Math.floor(Math.floor(this._effRawCalc()) * this.monster.globalDefMod)}`
+          return `Effective Damage: ${Math.floor(Math.floor(this._effEleCalc() + this._rawCalculations()) * this.monster.globalDefMod)}`
         }
     }
   }
@@ -119,9 +140,9 @@ const moo = require('moo')
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
-const keys = ['raw', 'aff', 'hz', 'ehz', 'mv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp']
+const keys = ['raw', 'aff', 'hz', 'ehz', 'mv', 'emv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp', 'critdraw']
 const mhguAtkSkills = ['aus', 'aum', 'aul']
-const elements = ['fire', 'ice', 'water', 'thunder', 'dragon', 'thun', 'dra', 'ele', 'eatk', 'eleattack', 'elemental', 'critele', 'elecrit']
+const elements = ['fire', 'ice', 'water', 'thunder', 'dragon', 'thun', 'dra', 'ele', 'eatk', 'elemental', 'critele', 'elecrit']
 const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps, elements)
 
 const lexer = moo.compile({
@@ -137,7 +158,7 @@ const lexer = moo.compile({
           sharp: sharps,
           element: elements,
          }},
-  decimal: /\d{1,3}\.\d{1,3}/, 
+  decimal: /\d{0,3}\.\d{1,3}/, 
   number: /[0-9]+/,
   punctuaton: /[.,\/#!$%\^&\*;:{}=\-_`~()]+/,
 })
@@ -277,10 +298,13 @@ class CLIParser {
         case null:
           this.parseError('There was a parser error, likely due to a string not triggering a keyword.')
           break
+        case 'critele':
+          structData.keyword = 'elecrit'
         case 'au':
         case 'ce':
         case 'ch':
         case 'sharp':
+        case 'eatk':
           structData.operand = null
         default:
           let check = this.Sieve.sieve(structData, weapon, skills, monster)
@@ -298,7 +322,7 @@ class CLIParser {
     }
     const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar))
     try {
-      parser.feed(cliString.toLowerCase().trim())
+      parser.feed(cliString)
       if (parser.results.length === 1) {
         return parser.results
       } else {
@@ -327,7 +351,9 @@ class Skills {
     this.addRaw = 0
     this.addAff = 0
     this.rawMult = []
-
+    this.eleMult = []
+    this.eleAttack = 0
+    this.elemental = false
   }
   critMod() {
     if (this.CB === false) {
@@ -349,42 +375,66 @@ class Skills {
       return multiplier
     }
   }
+  getEleMult() {
+    let multiplier = 1.0
+    if (this.eleMult.length === 0) {
+      return multiplier
+    } else {
+      this.eleMult.forEach( (i) => {
+        multiplier *= i
+      })
+    } return multiplier
+  }
 }
 
 module.exports = Skills
 },{}],6:[function(require,module,exports){
 class Weapon {
-  constructor (str) {
-    this.str = str
-    this._raw = 0
-    this._element = 0
-    this._affinity = 0
-    this.rawMotionValue = 100
+  constructor () {
     this.name = ''
-    this.weaponMult = 1.0
+    this.affinity = 0
+
+    this.raw = 0
+    this.rawMotionValue = 100
+    this.rawMult = 1.0
+    this.sharpRaw = 1.0
+
+    this.element = 0
+    this.sharpEle = 1.0
     this.eleCritMult = 0
+    this.eleMotionValue = 0
+
+    this.nullRaw = false
   }
-  set raw(val) {
-    this._raw = val
+
+  bowgunElement (sk) {
+      if (this.name === 'lbg' || this.name === 'hbg') {
+        this.element = parseInt(parseInt(this.raw + sk.addRaw) * this.eleMotionValue/100)
+        this.nullRaw = true
+      }
   }
-  get raw() {
-    return this._raw
-  }
-  set element(val) {
-    this._element = val
-  }
-  get element() {
-    return this._element
-  }
-  set affinity(val) {
-    this._affinity = val
-    if (this._affinity >= 100) {
-      this._affinity = 100
+
+  calcWpElement (sk) {
+    this.bowgunElement(sk)
+    let wpElement = this.element
+    let wpMults = 1
+    if (sk.elemental) {
+      wpMults += 0.1
     }
+    switch (sk.eleAttack) {
+      case 1:
+        wpMults += 0.05
+        wpElement = Math.floor(wpElement * wpMults) + 4
+        break
+      case 2:
+        wpMults += 0.1
+        wpElement = Math.floor(wpElement * wpMults) + 6
+        break
+      default:
+        break
+    }
+    return wpElement
   }
-  get affinity() {
-    return this._affinity
-  }  
 }
 
 module.exports = Weapon
@@ -1304,12 +1354,13 @@ function formFormer (element, elementText, formElement) {
 function submitData () {
   let elements = document.getElementById("mainformapp").elements;
   let dataPromise = new Promise ((resolve, reject) => {
-    let dmg = new Lask(elements['CLI'].value)
+    let dmg = new Lask()
+    dmg.parseString(elements['CLI'].value)
     resolve(dmg)
   })
   dataPromise.then((value) => {
     console.log(value.weaponStats())
-    let str = `${value.effectiveRawCalc()} \n ----`
+    let str = `${value.effectiveDmgCalc()} \n ----`
     let subDiv = document.createElement("div");
     subDiv.innerText = str;
     document.getElementById("output_div").prepend(subDiv);
@@ -1322,7 +1373,7 @@ function submitData () {
 },{"./Lask":1}],10:[function(require,module,exports){
 class MHGUSieve {
   constructor() {
-    this.sharpConstants = {
+    this.sharpConstantsRaw = {
       'purple': 1.39,
       'white': 1.32,
       'blue': 1.20,
@@ -1330,6 +1381,16 @@ class MHGUSieve {
       'yellow': 1.00,
       'orange': 0.75,
       'red': 0.50
+    }
+
+    this.sharpConstantsEle = {
+      'purple': 1.2,
+      'white': 1.125,
+      'blue': 1.0625,
+      'green': 1,
+      'yellow': 0.75,
+      'orange': 0.50,
+      'red': 0.25
     }
     
     this.switchCase = {
@@ -1341,6 +1402,11 @@ class MHGUSieve {
       'xraw': (load, v) => { load.sk.rawMult.push(v); return true},
       '+aff': (load, v) => { load.sk.addAff += v; return true},
       '-aff': (load, v) => { load.sk.addAff += v; return true},
+      '+ele': (load, v) => { return 'Adding to element is not supported'},
+      '-ele': (load, v) => { return 'Subtracting from element is not supported'},
+      'xele': (load, v) => { load.sk.eleMult.push(v); return true},
+      'eatk': (load, v) => { if (v === 1 || v === 2) {load.sk.eleAttack = v; return true} else {return '[Element] Attack can only go to 2'}},
+      'elemental': (sk) => { sk.elemental = true; return true},
       'xaff': () => { return 'Multipliers to affinity are not allowed'},
       'aus': (sk) => { sk.addRaw += 10; return true},
       'aum': (sk) => { sk.addRaw += 15; return true},
@@ -1352,10 +1418,12 @@ class MHGUSieve {
       'pup': (sk) => { sk.rawMult.push(1.1); return true},
       'tsu': (sk) => { sk.rawMult.push(1.2); return true},
       'sprdup': (sk) => { sk.rawMult.push(1.3); return true},
+      'critdraw': (sk) => { sk.addAff += 100; return true},
       'hz': (load, v) => { if (0 <= v && v <= 2) { load.m.rawHitzone = v * 100 } else {load.m.rawHitzone = v}; return true},
       'ehz': (load, v) => { if (0 <= v && v <= 2) { load.m.eleHitzone = v * 100 } else {load.m.eleHitzone = v}; return true},
       'ce': (load, v) => { if (1 <= v && v <= 3) { load.sk.addAff += v * 10; return true} else {return 'MHGU Crit Eye ranges only from 1 - 3'}},
-      'mv': (load, v) => { if (v <= 1.5) {load.wp.rawMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
+      'mv': (load, v) => { if (v <= 0.99) {load.wp.rawMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
+      'emv': (load, v) => { if (v <= 0.99) {load.wp.eleMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
       'gdm': (load, v) => { if (v >= 1.5) {return 'Global Def Mod value should be less than 1~'} else {load.m.globalDefMod = v; return true}},
       'ch': (load, v) => { 
         switch (v) {
@@ -1371,13 +1439,10 @@ class MHGUSieve {
             return 'Challenge can only be at level 1 or level 2'
         }
       },
-      'sharp': (load, v) => { load.sk.rawMult.push(this.sharpConstants[v]); return true},
-      'lbg': (wp) => { wp.weaponMult = 1.3; wp.eleCritMult = 1.3; return true},
-      'hbg': (wp) => { wp.weaponMult = 1.5; wp.eleCritMult = 1.30; return true},
-      'sns': (wp) => { wp.weaponMult = 1.05; wp.eleCritMult = 1.35 ;return true},
-      'bow': (wp) => { wp.eleCritMult = 1.35 ;return true},
-      'db': (wp) => { wp.eleCritMult = 1.35 ;return true},
-      'gs': (wp) => { wp.eleCritMult = 1.35 ;return true},
+      'sharp': (load, v) => { load.wp.sharpRaw = this.sharpConstantsRaw[v]; load.wp.sharpEle = this.sharpConstantsEle[v]; return true},
+      'lbg': (wp) => { wp.rawMult = 1.3; return true},
+      'hbg': (wp) => { wp.rawMult = 1.48; return true},
+      'sns': (wp) => { wp.rawMult = 1.05;return true},
       'elecrit' (wp) { 
         switch (wp.name) {
           case 'lbg':
@@ -1397,9 +1462,9 @@ class MHGUSieve {
             wp.eleCritMult = 0.25
         }
       },
-      'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup', 'pp'],
+      'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup', 'pp', 'elemental', 'critdraw'],
       'weaponstats': ['elecrit'],
-      'weapons': ['lbg', 'hbg', 'sns', 'bow', 'gs', 'db'],
+      'weapons': ['lbg', 'hbg', 'sns'],
       'elements': ['fire', 'water', 'ice', 'thunder', 'dra', 'thun'],
     }
   }

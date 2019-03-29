@@ -53,10 +53,13 @@ class CLIParser {
         case null:
           this.parseError('There was a parser error, likely due to a string not triggering a keyword.')
           break
+        case 'critele':
+          structData.keyword = 'elecrit'
         case 'au':
         case 'ce':
         case 'ch':
         case 'sharp':
+        case 'eatk':
           structData.operand = null
         default:
           let check = this.Sieve.sieve(structData, weapon, skills, monster)
@@ -74,7 +77,7 @@ class CLIParser {
     }
     const parser = new nearley.Parser(nearley.Grammar.fromCompiled(grammar))
     try {
-      parser.feed(cliString.toLowerCase().trim())
+      parser.feed(cliString)
       if (parser.results.length === 1) {
         return parser.results
       } else {
