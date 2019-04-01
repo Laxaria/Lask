@@ -74,8 +74,8 @@ let TESTS = {
     'value': 62
   },
   '18' : {
-    'string': 'bow: 320 raw, rup, 5x hits',
-    'value': 320 * 1.1 
+    'string': 'bow: 320 raw, rup, 5x hits,',
+    'value': 320 * 1.1
   },
 }
 
@@ -84,14 +84,14 @@ Object.entries(TESTS).forEach(([test, data]) => {
   let lask = new Lask()
   lask.parseString(data['string'])
   let output = lask.effectiveDmgCalc()
-  if ( lask.parser.errMsg.length > 2 && (data['value'] === 'fail') ) {
+  if ( lask.error() && (data['value'] === 'fail') ) {
     console.log('Success')
   }
   else if (Math.abs(output.dmg - data['value']) <= 1) {
     console.log('Success')
   } else {
     console.log(JSON.stringify(lask.weaponStats(), null, 2))
-    console.log(output)
+    console.log(lask.errorMessage())
     console.log(`Test ${test} failed`)
   }
 });

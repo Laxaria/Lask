@@ -1,6 +1,8 @@
 const nearley = require('nearley')
 const grammar = require('../grammar/grammar')
 
+GLOBAL_DEBUG = false
+
 class ParserOutput { 
   constructor(game, keyword, value, operand) {
     this.game = game
@@ -14,14 +16,14 @@ class CLIParser {
   constructor() {
     this.maxLength = 300
     this.quit = false
-    this.errMsg = '0'
+    this.errror
     this.Sieve 
   };
   
   parse(cliString, weapon, skills, monster) {
     let results = this.getParsed(cliString)
 
-    if (this.quit === true) { return }
+    if (this.error instanceof Error) { return }
 
     let data = results[0]
     let game = (function() {
@@ -39,11 +41,15 @@ class CLIParser {
     this.Sieve.wepSieve(weapon)
 
     let parsedData = data['data']
+    let j = parsedData.length
 
-    for (let i = 0; i < parsedData.length; i++) {
-      if (this.quit === true) { break }
+    for (let i = 0; i < j; i++) {
 
+      // if (this.quit === true) { break }
+      if (this.error instanceof Error) { break }
+      
       let row = parsedData[i]
+      if (GLOBAL_DEBUG) { console.log(row) }
       let operand = row[1].operand
       let value = row[1].value
       let keyword = row[0]
@@ -95,8 +101,8 @@ class CLIParser {
   }
 
   parseError(errMsg) {
-    this.quit = true
-    this.errMsg = errMsg
+    this.error = new Error(errMsg)
+    // this.quit = true
     return null
   }
 }

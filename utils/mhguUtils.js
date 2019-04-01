@@ -69,7 +69,9 @@ const switchCase = {
   'sharp': (load, v) => { load.wp.sharpRaw = sharpConstantsRaw[v]; load.wp.sharpEle = sharpConstantsEle[v]; return true},
   'lbg': (wp) => { wp.rawMult = 1.3; return true},
   'hbg': (wp) => { wp.rawMult = 1.48; return true},
-  'sns': (wp) => { wp.rawMult = 1.05;return true},
+  'sns': (wp) => { wp.rawMult = 1.06; return true},
+  'gs': (wp) => { wp.rawMult = 1.05; return true},
+  'ls': (wp) => { wp.rawMult = 1.05; return true},
   'elecrit' (wp) { 
     switch (wp.name) {
       case 'lbg':

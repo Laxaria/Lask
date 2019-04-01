@@ -11,21 +11,28 @@ class Lask {
     this.skills = new Skills()
     this.monster = new Monster()
     this.parser = new CLIParser()
-    this.game
-    this.damageCalculator = new DamageCalculator(this.weapon, this.skills, this.monster)
   }
 
   parseString(cliString) {
     cliString = cliString.toLowerCase().trim()
-    
+
     if (cliString.includes('mhgu')) { this.game = 'mhgu' }
     else if (cliString.includes('mhworld')) { this.game = 'mhworld' }
+    else { this.game = 'Game not indicated' }
 
     if (cliString.slice(-1) === ',') {
       cliString = cliString.slice(0, cliString.length -1)
     }
 
     this.parser.parse(cliString, this.weapon, this.skills, this.monster)
+  }
+
+  error() {
+    if (this.parser.error instanceof Error) { return true }
+  }
+
+  errorMessage() {
+    if (this.parser.error instanceof Error) { return this.parser.error.message }
   }
 
   weaponStats() {
@@ -43,12 +50,17 @@ class Lask {
     //   'weapon ele crit': this.weapon.eleCritMult
     // }
     let output = this
-    return output
+    return output['damageCalculator']
   }
 
   effectiveDmgCalc(debug = false) {
-    if (this.parser.quit) { return this.parser.errmsg }
-    else { return this.damageCalculator.effectiveDmgCalc(debug) }
+    let damageCalculator = new DamageCalculator(this.game, this.weapon, this.skills, this.monster)
+    if (this.parser.error instanceof Error) { return this.parser.error }
+    else { 
+      let output = damageCalculator.effectiveDmgCalc(debug) 
+      console.log(output)
+      return output
+    }
   }
 }
 
@@ -158,11 +170,37 @@ if (typeof module !== 'undefined'&& typeof module.exports !== 'undefined') {
 })();
 
 },{"moo":8}],3:[function(require,module,exports){
+class DmgCalcOutput {
+  constructor (game, type, rawDmg, rawDmgString, eleDmg, eleDmgString, totalDmg, ...args) {
+    this.game = game
+    this.type = type
+    this.rawDamage = rawDmg
+    this.rawDamageString = rawDmgString
+    this.eleDamageString = eleDmgString
+    this.eleDamage = eleDmg
+    this.totalDamage = totalDmg
+    let _assumptions = []
+    switch (args.length) {
+      case 0:
+        break
+      default:
+        for (let e of args[0].entries()) {
+          _assumptions.push(`(${e[0]+1}) ${e[1]}`)
+        }
+        break
+    }
+    this.assumptions = `${_assumptions.join(' ')}`
+  }
+}
+
 class DamageCalculator {
-  constructor (weapon, skills, monster,) {
+  constructor (game, weapon, skills, monster) {
+    this.game = game
     this.weapon = weapon
     this.skills = skills
     this.monster = monster
+    this._rawDmgString
+    this._eleDmgString
   }
 
   _rawCalculations (debug = false) {
@@ -207,6 +245,7 @@ class DamageCalculator {
     let dmgString = 
       `${wpMult} * ${wpSharpMult} * (${wpRaw} + ${wpAddRaw}) * (1 + ${_totAff/100} * ${skAffMod})${_strWpRawMults()} * ${wpMV/100} * ${mRawHZ/100}`
     if (debug) { console.log(dmgString) }
+    this._rawDmgString = dmgString
     let dmg = parseFloat(wpMult * wpSharpMult * _totRaw * (1 + _totAff/100 * skAffMod) * wpRawMults * wpMV/100 * mRawHZ/100)
     return dmg
     }
@@ -231,23 +270,36 @@ class DamageCalculator {
     }
 
     let eleDmgString = `${wepSharpEleMod} * ${wepEle} * (1 + ${totalAff()/100} * ${wepEleCritMult}) * ${eleMults} * ${eleHZ/100}`
-    if (debug) {
-      console.log(eleDmgString)
-    }
+    if (debug) { console.log(eleDmgString)}
+    this._eleDmgString = eleDmgString
     let result = wepSharpEleMod * wepEle * (1 + totalAff()/100 * wepEleCritMult) * eleMults * eleHZ/100
     return parseFloat(result)
+  }
+  assumptionsLogger() {
+    let assumptions = []
+    let assumeWps = ['sns', 'gs', 'hbg', 'lbg', 'ls']
+    if (this.monster.rawHitzone === 100) {assumptions.push('Monster had a 100 raw hitzone.')}
+    if (this.weapon.rawMotionValue === 100) {assumptions.push('Weapon\'s raw motion value was 100.')}
+    if (assumeWps.includes(this.weapon.name) && this.game === 'mhgu') {assumptions.push(`Added weapon-specific multiplier of ${this.weapon.rawMult}.`)}
+    return assumptions
   }
 
   effectiveDmgCalc(debug = false) {
     let wpHits = this.weapon.hits
-    switch (debug) {
-      case true:
-        if (this.monster.rawHitzone === 100) { return {'type': 'Effective raw', 'dmg': this._EleCalculations(true) * wpHits + this._rawCalculations(true)} }
-        else { return {'type': 'Effective raw', 'dmg': Math.floor(Math.floor(this._EleCalculations(true) * wpHits + this._rawCalculations(true)) * this.monster.globalDefMod)} }
-      case false:
-      if (this.monster.rawHitzone === 100) { return {'type': 'Effective raw', 'dmg': this._EleCalculations() * wpHits + this._rawCalculations()} }
-      else { return {'type': 'Effective raw', 'dmg': Math.floor(Math.floor(this._EleCalculations() * wpHits + this._rawCalculations()) * this.monster.globalDefMod)} }
+    let rawDamage = Math.floor(this._rawCalculations(debug))
+    let eleDamage = Math.floor(this._EleCalculations(debug))
+    let totalDmg = Math.floor((rawDamage + eleDamage * wpHits) * this.monster.globalDefMod)
+    let type
+    switch (this.monster.rawHitzone) {
+      case 100:
+        type = 'Effective Raw'
+        break
+      default:
+        type = 'Effective damage'
+        break
     }
+    let output = new DmgCalcOutput(this.game, type, rawDamage, this._rawDmgString, eleDamage, this._eleDmgString, totalDmg, this.assumptionsLogger())
+    return output
   }
 }
 
@@ -266,6 +318,8 @@ module.exports = Monster
 const nearley = require('nearley')
 const grammar = require('../grammar/grammar')
 
+GLOBAL_DEBUG = false
+
 class ParserOutput { 
   constructor(game, keyword, value, operand) {
     this.game = game
@@ -279,14 +333,14 @@ class CLIParser {
   constructor() {
     this.maxLength = 300
     this.quit = false
-    this.errMsg = '0'
+    this.errror
     this.Sieve 
   };
   
   parse(cliString, weapon, skills, monster) {
     let results = this.getParsed(cliString)
 
-    if (this.quit === true) { return }
+    if (this.error instanceof Error) { return }
 
     let data = results[0]
     let game = (function() {
@@ -304,11 +358,15 @@ class CLIParser {
     this.Sieve.wepSieve(weapon)
 
     let parsedData = data['data']
+    let j = parsedData.length
 
-    for (let i = 0; i < parsedData.length; i++) {
-      if (this.quit === true) { break }
+    for (let i = 0; i < j; i++) {
 
+      // if (this.quit === true) { break }
+      if (this.error instanceof Error) { break }
+      
       let row = parsedData[i]
+      if (GLOBAL_DEBUG) { console.log(row) }
       let operand = row[1].operand
       let value = row[1].value
       let keyword = row[0]
@@ -360,8 +418,8 @@ class CLIParser {
   }
 
   parseError(errMsg) {
-    this.quit = true
-    this.errMsg = errMsg
+    this.error = new Error(errMsg)
+    // this.quit = true
     return null
   }
 }
@@ -1386,10 +1444,15 @@ function submitData () {
   let dataPromise = new Promise ((resolve, reject) => {
     let dmg = new Lask()
     dmg.parseString(elements['CLI'].value)
-    resolve(dmg.effectiveDmgCalc())
+    resolve(dmg.effectiveDmgCalc(true))
   })
   dataPromise.then((value) => {
-    let str = `${value.type} is ${value.dmg} \n ----`
+    let str
+    if (!(value instanceof Error)) {
+      str = `${value.type} is ${value.totalDamage} \n ----`
+    } else {
+      str = value.message
+    }
     let subDiv = document.createElement("div");
     subDiv.innerText = str;
     document.getElementById("output_div").prepend(subDiv);
@@ -1471,7 +1534,9 @@ const switchCase = {
   'sharp': (load, v) => { load.wp.sharpRaw = sharpConstantsRaw[v]; load.wp.sharpEle = sharpConstantsEle[v]; return true},
   'lbg': (wp) => { wp.rawMult = 1.3; return true},
   'hbg': (wp) => { wp.rawMult = 1.48; return true},
-  'sns': (wp) => { wp.rawMult = 1.05;return true},
+  'sns': (wp) => { wp.rawMult = 1.06; return true},
+  'gs': (wp) => { wp.rawMult = 1.05; return true},
+  'ls': (wp) => { wp.rawMult = 1.05; return true},
   'elecrit' (wp) { 
     switch (wp.name) {
       case 'lbg':

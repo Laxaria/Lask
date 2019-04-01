@@ -1,8 +1,34 @@
+class DmgCalcOutput {
+  constructor (game, type, rawDmg, rawDmgString, eleDmg, eleDmgString, totalDmg, ...args) {
+    this.game = game
+    this.type = type
+    this.rawDamage = rawDmg
+    this.rawDamageString = rawDmgString
+    this.eleDamageString = eleDmgString
+    this.eleDamage = eleDmg
+    this.totalDamage = totalDmg
+    let _assumptions = []
+    switch (args.length) {
+      case 0:
+        break
+      default:
+        for (let e of args[0].entries()) {
+          _assumptions.push(`(${e[0]+1}) ${e[1]}`)
+        }
+        break
+    }
+    this.assumptions = `${_assumptions.join(' ')}`
+  }
+}
+
 class DamageCalculator {
-  constructor (weapon, skills, monster,) {
+  constructor (game, weapon, skills, monster) {
+    this.game = game
     this.weapon = weapon
     this.skills = skills
     this.monster = monster
+    this._rawDmgString
+    this._eleDmgString
   }
 
   _rawCalculations (debug = false) {
@@ -47,6 +73,7 @@ class DamageCalculator {
     let dmgString = 
       `${wpMult} * ${wpSharpMult} * (${wpRaw} + ${wpAddRaw}) * (1 + ${_totAff/100} * ${skAffMod})${_strWpRawMults()} * ${wpMV/100} * ${mRawHZ/100}`
     if (debug) { console.log(dmgString) }
+    this._rawDmgString = dmgString
     let dmg = parseFloat(wpMult * wpSharpMult * _totRaw * (1 + _totAff/100 * skAffMod) * wpRawMults * wpMV/100 * mRawHZ/100)
     return dmg
     }
@@ -71,23 +98,36 @@ class DamageCalculator {
     }
 
     let eleDmgString = `${wepSharpEleMod} * ${wepEle} * (1 + ${totalAff()/100} * ${wepEleCritMult}) * ${eleMults} * ${eleHZ/100}`
-    if (debug) {
-      console.log(eleDmgString)
-    }
+    if (debug) { console.log(eleDmgString)}
+    this._eleDmgString = eleDmgString
     let result = wepSharpEleMod * wepEle * (1 + totalAff()/100 * wepEleCritMult) * eleMults * eleHZ/100
     return parseFloat(result)
+  }
+  assumptionsLogger() {
+    let assumptions = []
+    let assumeWps = ['sns', 'gs', 'hbg', 'lbg', 'ls']
+    if (this.monster.rawHitzone === 100) {assumptions.push('Monster had a 100 raw hitzone.')}
+    if (this.weapon.rawMotionValue === 100) {assumptions.push('Weapon\'s raw motion value was 100.')}
+    if (assumeWps.includes(this.weapon.name) && this.game === 'mhgu') {assumptions.push(`Added weapon-specific multiplier of ${this.weapon.rawMult}.`)}
+    return assumptions
   }
 
   effectiveDmgCalc(debug = false) {
     let wpHits = this.weapon.hits
-    switch (debug) {
-      case true:
-        if (this.monster.rawHitzone === 100) { return {'type': 'Effective raw', 'dmg': this._EleCalculations(true) * wpHits + this._rawCalculations(true)} }
-        else { return {'type': 'Effective raw', 'dmg': Math.floor(Math.floor(this._EleCalculations(true) * wpHits + this._rawCalculations(true)) * this.monster.globalDefMod)} }
-      case false:
-      if (this.monster.rawHitzone === 100) { return {'type': 'Effective raw', 'dmg': this._EleCalculations() * wpHits + this._rawCalculations()} }
-      else { return {'type': 'Effective raw', 'dmg': Math.floor(Math.floor(this._EleCalculations() * wpHits + this._rawCalculations()) * this.monster.globalDefMod)} }
+    let rawDamage = Math.floor(this._rawCalculations(debug))
+    let eleDamage = Math.floor(this._EleCalculations(debug))
+    let totalDmg = Math.floor((rawDamage + eleDamage * wpHits) * this.monster.globalDefMod)
+    let type
+    switch (this.monster.rawHitzone) {
+      case 100:
+        type = 'Effective Raw'
+        break
+      default:
+        type = 'Effective damage'
+        break
     }
+    let output = new DmgCalcOutput(this.game, type, rawDamage, this._rawDmgString, eleDamage, this._eleDmgString, totalDmg, this.assumptionsLogger())
+    return output
   }
 }
 
