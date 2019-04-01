@@ -14,7 +14,7 @@ class CLIParser {
   constructor() {
     this.maxLength = 300
     this.quit = false
-    this.errmsg = '0'
+    this.errMsg = '0'
     this.Sieve 
   };
   
@@ -60,6 +60,8 @@ class CLIParser {
         case 'ch':
         case 'sharp':
         case 'eatk':
+        case 'nup':
+        case 'hits':
           structData.operand = null
         default:
           let check = this.Sieve.sieve(structData, weapon, skills, monster)
@@ -80,6 +82,8 @@ class CLIParser {
       parser.feed(cliString)
       if (parser.results.length === 1) {
         return parser.results
+      } else if (parser.results.length === 0) {
+          this.parseError('Failed to parse')
       } else {
         this.parseError('Failed to parse due to ambiguity in submission string. Report string to https://github.com/Laxaria/Lask')
         return null
@@ -90,9 +94,9 @@ class CLIParser {
     }
   }
 
-  parseError(errmsg) {
+  parseError(errMsg) {
     this.quit = true
-    this.errmsg = errmsg
+    this.errMsg = errMsg
     return null
   }
 }

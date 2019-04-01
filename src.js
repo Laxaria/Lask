@@ -59,11 +59,10 @@ function submitData () {
   let dataPromise = new Promise ((resolve, reject) => {
     let dmg = new Lask()
     dmg.parseString(elements['CLI'].value)
-    resolve(dmg)
+    resolve(dmg.effectiveDmgCalc())
   })
   dataPromise.then((value) => {
-    console.log(value.weaponStats())
-    let str = `${value.effectiveDmgCalc()} \n ----`
+    let str = `${value.type} is ${value.dmg} \n ----`
     let subDiv = document.createElement("div");
     subDiv.innerText = str;
     document.getElementById("output_div").prepend(subDiv);
