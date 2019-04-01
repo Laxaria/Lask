@@ -4,7 +4,7 @@ const moo = require('moo')
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
-const keys = ['raw', 'aff', 'hz', 'ehz', 'mv', 'emv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp', 'critdraw', 'hits', 'nup']
+const keys = ['traw', 'draw', 'dele', 'raw', 'aff', 'ab', 'hz', 'ehz', 'mv', 'emv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp', 'critdraw', 'hits', 'nup']
 const mhguAtkSkills = ['aus', 'aum', 'aul']
 const elements = ['fire', 'ice', 'water', 'thunder', 'dragon', 'thun', 'dra', 'ele', 'eatk', 'elemental', 'critele', 'elecrit']
 const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps, elements)
@@ -40,11 +40,14 @@ let constructMetaObj = (a, b=null) => {
   }
 }
   
-let constructPartData = (a = null, b) => {
+let constructPartData = (a, b) => {
   return (d) => {
     if (a === null) {
       return {'game': null, 'weapon': d[b].value}
-    } else {
+    } else if (b === null) {
+      return {'game': d[a].value, 'weapon': null}
+    }
+    else {
       return {'game': d[a].value, 'weapon': d[b].value}
     }
   }
@@ -68,8 +71,26 @@ let validityCheck = (a) => {
 MAIN         -> PREDATA ":" WS:? DATA        {% (d) => {return {"game": d[0].game, "weapon": d[0].weapon, "data": d[d.length-1]}} %}
               | DATA                         {% (d) => {return {"game": null, "weapon": null, "data": d[0]}} %}
 
-PREDATA      -> %word %ws %word              {% constructPartData(0, 2) %}
-              | %word                        {% constructPartData(null, 0) %}
+PREDATA      -> GAME %ws WEAPON              {% constructPartData(0, 2) %}
+              | WEAPON                       {% constructPartData(null, 0) %}
+              | GAME                         {% constructPartData(0, null) %}
+
+GAME         -> "mhgu"                       {% id %}
+              | "mhworld"                    {% id %}
+
+WEAPON       -> "sns"                        {% id %}
+              | "gs"                         {% id %}
+              | "db"                         {% id %}
+              | "ls"                         {% id %}
+              | "bow"                        {% id %}
+              | "lbg"                        {% id %}
+              | "hbg"                        {% id %}
+              | "gl"                         {% id %}
+              | "lance"                      {% id %}
+              | "ig"                         {% id %}
+              | "cb"                         {% id %}
+              | "hh"                         {% id %}
+              | "hammer"                     {% id %}
 
 WS           -> %ws                          {% id %}
 

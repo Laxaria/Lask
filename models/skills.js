@@ -12,11 +12,34 @@ class Skills {
     this.eleAttack = 0
     this.elemental = false
   }
+  weMod() {
+    switch (this.WE) {
+      case 1:
+        return 15
+      case 2:
+        return 30
+      case 3:
+      case true:
+        return 50
+      case false:
+        return 0
+      default:
+        return 'Parser error'
+    }
+  }
   critMod() {
-    if (this.CB === false) {
-      return 0.25
-    } else if (this.CB === true) {
-      return 0.40
+    switch (this.CB) {
+      case 1:
+        return 0.30
+      case 2:
+        return 0.35
+      case 3:
+      case true:
+        return 0.40
+      case false:
+        return 0.25
+      default:
+        return 'Parser error'
     }
   }
   getRawMult() {

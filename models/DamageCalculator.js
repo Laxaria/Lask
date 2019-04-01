@@ -2,11 +2,11 @@ class DmgCalcOutput {
   constructor (game, type, rawDmg, rawDmgString, eleDmg, eleDmgString, totalDmg, ...args) {
     this.game = game
     this.type = type
+    this.totalDamage = totalDmg
     this.rawDamage = rawDmg
     this.rawDamageString = rawDmgString
-    this.eleDamageString = eleDmgString
     this.eleDamage = eleDmg
-    this.totalDamage = totalDmg
+    this.eleDamageString = eleDmgString
     let _assumptions = []
     switch (args.length) {
       case 0:
@@ -88,8 +88,8 @@ class DamageCalculator {
 
     let totalAff = () => {
       let _totalAff = this.skills.addAff + this.weapon.affinity
-      if (this.monster.rawHitzone >= 45 && this.skills.WE === true) {
-        _totalAff += 50
+      if (this.monster.rawHitzone >= 45) {
+        _totalAff += this.skills.weMod()
       }
       if (_totalAff >= 100) {
         _totalAff = 100
@@ -105,10 +105,14 @@ class DamageCalculator {
   }
   assumptionsLogger() {
     let assumptions = []
-    let assumeWps = ['sns', 'gs', 'hbg', 'lbg', 'ls']
+    let bowguns = ['lbg', 'hbg']
+    let gunnerWeapons = ['bow'].concat(bowguns)
+    let assumeWps = ['sns', 'gs', 'ls'].concat(gunnerWeapons)
     if (this.monster.rawHitzone === 100) {assumptions.push('Monster had a 100 raw hitzone.')}
     if (this.weapon.rawMotionValue === 100) {assumptions.push('Weapon\'s raw motion value was 100.')}
-    if (assumeWps.includes(this.weapon.name) && this.game === 'mhgu') {assumptions.push(`Added weapon-specific multiplier of ${this.weapon.rawMult}.`)}
+    if (assumeWps.includes(this.weapon.name)) {assumptions.push(`Added weapon-specific multiplier of ${this.weapon.rawMult} for raw damage.`)}
+    if (!this.weapon.sharp && !gunnerWeapons.includes(this.weapon.name)) {assumptions.push('A sharpness multiplier of 1.0x for raw and element was used as no weapon sharpness was indicated.')}
+    if (this.monster.globalDefMod === 1) {assumptions.push('Quest defense modifier for monster is 1.0x.')}
     return assumptions
   }
 

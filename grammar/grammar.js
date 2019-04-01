@@ -8,7 +8,7 @@ const moo = require('moo')
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
-const keys = ['raw', 'aff', 'hz', 'ehz', 'mv', 'emv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp', 'critdraw', 'hits', 'nup']
+const keys = ['traw', 'draw', 'dele', 'raw', 'aff', 'ab', 'hz', 'ehz', 'mv', 'emv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp', 'critdraw', 'hits', 'nup']
 const mhguAtkSkills = ['aus', 'aum', 'aul']
 const elements = ['fire', 'ice', 'water', 'thunder', 'dragon', 'thun', 'dra', 'ele', 'eatk', 'elemental', 'critele', 'elecrit']
 const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps, elements)
@@ -44,11 +44,14 @@ let constructMetaObj = (a, b=null) => {
   }
 }
   
-let constructPartData = (a = null, b) => {
+let constructPartData = (a, b) => {
   return (d) => {
     if (a === null) {
       return {'game': null, 'weapon': d[b].value}
-    } else {
+    } else if (b === null) {
+      return {'game': d[a].value, 'weapon': null}
+    }
+    else {
       return {'game': d[a].value, 'weapon': d[b].value}
     }
   }
@@ -72,8 +75,24 @@ var grammar = {
     {"name": "MAIN$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "MAIN", "symbols": ["PREDATA", {"literal":":"}, "MAIN$ebnf$1", "DATA"], "postprocess": (d) => {return {"game": d[0].game, "weapon": d[0].weapon, "data": d[d.length-1]}}},
     {"name": "MAIN", "symbols": ["DATA"], "postprocess": (d) => {return {"game": null, "weapon": null, "data": d[0]}}},
-    {"name": "PREDATA", "symbols": [(lexer.has("word") ? {type: "word"} : word), (lexer.has("ws") ? {type: "ws"} : ws), (lexer.has("word") ? {type: "word"} : word)], "postprocess": constructPartData(0, 2)},
-    {"name": "PREDATA", "symbols": [(lexer.has("word") ? {type: "word"} : word)], "postprocess": constructPartData(null, 0)},
+    {"name": "PREDATA", "symbols": ["GAME", (lexer.has("ws") ? {type: "ws"} : ws), "WEAPON"], "postprocess": constructPartData(0, 2)},
+    {"name": "PREDATA", "symbols": ["WEAPON"], "postprocess": constructPartData(null, 0)},
+    {"name": "PREDATA", "symbols": ["GAME"], "postprocess": constructPartData(0, null)},
+    {"name": "GAME", "symbols": [{"literal":"mhgu"}], "postprocess": id},
+    {"name": "GAME", "symbols": [{"literal":"mhworld"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"sns"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"gs"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"db"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"ls"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"bow"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"lbg"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"hbg"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"gl"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"lance"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"ig"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"cb"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"hh"}], "postprocess": id},
+    {"name": "WEAPON", "symbols": [{"literal":"hammer"}], "postprocess": id},
     {"name": "WS", "symbols": [(lexer.has("ws") ? {type: "ws"} : ws)], "postprocess": id},
     {"name": "DATA", "symbols": ["SEGMENT"]},
     {"name": "DATA$ebnf$1", "symbols": ["WS"], "postprocess": id},

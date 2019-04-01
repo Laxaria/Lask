@@ -10,6 +10,7 @@ class Lask {
     this.skills = new Skills()
     this.monster = new Monster()
     this.parser = new CLIParser()
+    this.game
   }
 
   parseString(cliString) {
@@ -57,7 +58,7 @@ class Lask {
     if (this.parser.error instanceof Error) { return this.parser.error }
     else { 
       let output = damageCalculator.effectiveDmgCalc(debug) 
-      console.log(output)
+      if (debug) {console.log(output)}
       return output
     }
   }

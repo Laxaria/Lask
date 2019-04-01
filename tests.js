@@ -77,6 +77,10 @@ let TESTS = {
     'string': 'bow: 320 raw, rup, 5x hits,',
     'value': 320 * 1.1
   },
+  '19' : {
+    'string': 'mhworld bow: 320 raw, 40 aff, ab4',
+    'value': 369
+  },
 }
 
 Object.entries(TESTS).forEach(([test, data]) => {
@@ -87,10 +91,10 @@ Object.entries(TESTS).forEach(([test, data]) => {
   if ( lask.error() && (data['value'] === 'fail') ) {
     console.log('Success')
   }
-  else if (Math.abs(output.dmg - data['value']) <= 1) {
+  else if (Math.abs(output.totalDamage - data['value']) <= 1) {
     console.log('Success')
   } else {
-    console.log(JSON.stringify(lask.weaponStats(), null, 2))
+    console.log(JSON.stringify(output, null, 2))
     console.log(lask.errorMessage())
     console.log(`Test ${test} failed`)
   }

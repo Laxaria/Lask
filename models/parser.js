@@ -24,8 +24,8 @@ class CLIParser {
     let results = this.getParsed(cliString)
 
     if (this.error instanceof Error) { return }
-
     let data = results[0]
+
     let game = (function() {
       if (data['game'] === null) {
         return 'mhgu'
@@ -33,10 +33,15 @@ class CLIParser {
         return data['game']
       }
     })()
+
     if (game === 'mhgu') {
       const MHGUSieve = require ('../utils/mhguUtils')
-      this.Sieve = new MHGUSieve ()
+      this.Sieve = new MHGUSieve()
+    } else if (game === 'mhworld') {
+      const MHWorldSieve = require('../utils/mhworldUtils')
+      this.Sieve = new MHWorldSieve()
     }
+
     weapon.name = data['weapon']
     this.Sieve.wepSieve(weapon)
 
@@ -68,6 +73,7 @@ class CLIParser {
         case 'eatk':
         case 'nup':
         case 'hits':
+        case 'ab':
           structData.operand = null
         default:
           let check = this.Sieve.sieve(structData, weapon, skills, monster)

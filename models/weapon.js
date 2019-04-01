@@ -1,7 +1,27 @@
+const sharpConstantsRaw = {
+  'purple': 1.39,
+  'white': 1.32,
+  'blue': 1.20,
+  'green': 1.05,
+  'yellow': 1.00,
+  'orange': 0.75,
+  'red': 0.50
+}
+
+const sharpConstantsEle = {
+  'purple': 1.2,
+  'white': 1.125,
+  'blue': 1.0625,
+  'green': 1,
+  'yellow': 0.75,
+  'orange': 0.50,
+  'red': 0.25
+}
 class Weapon {
   constructor () {
     this.name = ''
     this.affinity = 0
+    this.sharp
 
     this.raw = 0
     this.rawMotionValue = 100
@@ -18,7 +38,15 @@ class Weapon {
     this.hits = 1
   }
 
-  bowgunElement (sk) {
+  sharpMods(color) {
+    if (!this.sharp) {
+      this.sharp = color
+      this.sharpRaw = sharpConstantsRaw[color]
+      this.sharpEle = sharpConstantsEle[color]
+    }
+  }
+
+  bowgunElement(sk) {
       if (this.name === 'lbg' || this.name === 'hbg') {
         sk.eleMult.push(0.95)
         this.element = this.raw + sk.addRaw
@@ -26,7 +54,7 @@ class Weapon {
       }
   }
 
-  calcWpElement (sk) {
+  calcWpElement(sk) {
     this.bowgunElement(sk)
     let wpElement = parseInt(this.element)
     let wpMults = 1
@@ -47,7 +75,9 @@ class Weapon {
     }
     if (this.name === 'lbg' || this.name === 'hbg') {
       return parseFloat(wpElement * this.eleMotionValue/100)
-    } else { return wpElement }
+    } else { 
+      return wpElement
+    }
   }
 }
 
