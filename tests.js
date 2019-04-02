@@ -71,7 +71,7 @@ let TESTS = {
   },
   '17' : {
     'string': 'lbg: 320 raw, ch+2, .69 emv, elemental, eatk2, .05 mv, 40 hz, 20 ehz',
-    'value': 62
+    'value': 66
   },
   '18' : {
     'string': 'bow: 320 raw, rup, 5x hits,',

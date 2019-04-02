@@ -66,7 +66,9 @@ class CLIParser {
           break
         case 'critele':
           structData.keyword = 'elecrit'
-        case 'au':
+        // case 'au':
+        //   structData.keyword = 'ab'
+        //   console.log(structData)
         case 'ce':
         case 'ch':
         case 'sharp':

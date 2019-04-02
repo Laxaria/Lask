@@ -50,7 +50,7 @@ class Lask {
     //   'weapon ele crit': this.weapon.eleCritMult
     // }
     let output = this
-    return output['damageCalculator']
+    return output
   }
 
   effectiveDmgCalc(debug = false) {

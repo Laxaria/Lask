@@ -51,7 +51,7 @@ class Lask {
     //   'weapon ele crit': this.weapon.eleCritMult
     // }
     let output = this
-    return output['damageCalculator']
+    return output
   }
 
   effectiveDmgCalc(debug = false) {
@@ -228,7 +228,7 @@ class DamageCalculator {
     let wpAddRaw = this.skills.addRaw
     let wpAff = this.weapon.affinity
     let wpAddAff = this.skills.addAff
-    let wpMV = this.weapon.rawMotionValue
+    let wpMV = this.weapon.rawMV
     let wpMult = this.weapon.rawMult
     let wpSharpMult = this.weapon.sharpRaw
     let skAffMod = this.skills.critMod()
@@ -236,15 +236,16 @@ class DamageCalculator {
     let mRawHZ = this.monster.rawHitzone
 
     let wpTotalAff = () => {
-      let _totalAff = wpAff + wpAddAff
-      if (mRawHZ >= 45 && this.skills.WE === true) {
-        _totalAff += 50
+      let _totalAff = this.skills.addAff + this.weapon.affinity
+      if (this.monster.rawHitzone >= 45) {
+        _totalAff += this.skills.weMod()
       }
-      if (_totalAff > 100) {
+      if (_totalAff >= 100) {
         _totalAff = 100
       }
       return _totalAff
     }
+
 
     let _strWpRawMults = () => {
       let _skRawMult = this.skills.rawMult
@@ -255,7 +256,6 @@ class DamageCalculator {
       }
     }
 
-    let _totAff = wpTotalAff()
     let _totRaw = wpRaw + wpAddRaw
 
     if (this.weapon.nullRaw === true && this.weapon.rawMotionValue === 100 && this.weapon.eleMotionValue !== 0) {
@@ -263,15 +263,15 @@ class DamageCalculator {
     }
     
     let dmgString = 
-      `${wpMult} * ${wpSharpMult} * (${wpRaw} + ${wpAddRaw}) * (1 + ${_totAff/100} * ${skAffMod})${_strWpRawMults()} * ${wpMV/100} * ${mRawHZ/100}`
+      `${wpMult} * ${wpSharpMult} * (${wpRaw} + ${wpAddRaw}) * (1 + ${wpTotalAff()/100} * ${skAffMod})${_strWpRawMults()} * ${wpMV/100} * ${mRawHZ/100}`
     if (debug) { console.log(dmgString) }
     this._rawDmgString = dmgString
-    let dmg = parseFloat(wpMult * wpSharpMult * _totRaw * (1 + _totAff/100 * skAffMod) * wpRawMults * wpMV/100 * mRawHZ/100)
-    return dmg
+    let dmg = parseFloat(wpMult * wpSharpMult * _totRaw * (1 + wpTotalAff()/100 * skAffMod) * wpRawMults * wpMV/100 * mRawHZ/100)
+    if (this.weapon.nullRaw && wpMV === null) { return 0 } else { return dmg }
     }
 
   _EleCalculations(debug = false) {
-    let wepEle = Math.floor(this.weapon.calcWpElement(this.skills))
+    let wepEle = Math.floor(this.weapon.calcWpElement(this.game, this.skills))
     let wepEleCritMult = this.weapon.eleCritMult
     let wepSharpEleMod = this.weapon.sharpEle
     let eleMults = this.skills.getEleMult()
@@ -298,13 +298,13 @@ class DamageCalculator {
   assumptionsLogger() {
     let assumptions = []
     let bowguns = ['lbg', 'hbg']
-    let gunnerWeapons = ['bow'].concat(bowguns)
-    let assumeWps = ['sns', 'gs', 'ls'].concat(gunnerWeapons)
+    let assumeWps = ['sns', 'gs', 'ls'].concat(bowguns)
     if (this.monster.rawHitzone === 100) {assumptions.push('Monster had a 100 raw hitzone.')}
-    if (this.weapon.rawMotionValue === 100) {assumptions.push('Weapon\'s raw motion value was 100.')}
+    if (this.weapon.rawMotionValue === null && !this.weapon.nullRaw) {assumptions.push('Weapon\'s raw motion value was 100.')}
     if (assumeWps.includes(this.weapon.name)) {assumptions.push(`Added weapon-specific multiplier of ${this.weapon.rawMult} for raw damage.`)}
-    if (!this.weapon.sharp && !gunnerWeapons.includes(this.weapon.name)) {assumptions.push('A sharpness multiplier of 1.0x for raw and element was used as no weapon sharpness was indicated.')}
+    if (!this.weapon.sharp && !bowguns.includes(this.weapon.name)) {assumptions.push('A sharpness multiplier of 1.0x for raw and element was used as no weapon sharpness was indicated.')}
     if (this.monster.globalDefMod === 1) {assumptions.push('Quest defense modifier for monster is 1.0x.')}
+    if (this.weapon.nullRaw && this.weapon.rawMV === 1.00) {assumptions.push('No raw damage dealt.')}
     return assumptions
   }
 
@@ -407,7 +407,9 @@ class CLIParser {
           break
         case 'critele':
           structData.keyword = 'elecrit'
-        case 'au':
+        // case 'au':
+        //   structData.keyword = 'ab'
+        //   console.log(structData)
         case 'ce':
         case 'ch':
         case 'sharp':
@@ -551,7 +553,7 @@ class Weapon {
     this.sharp
 
     this.raw = 0
-    this.rawMotionValue = 100
+    this.rawMotionValue = null
     this.rawMult = 1.0
     this.sharpRaw = 1.0
 
@@ -564,6 +566,9 @@ class Weapon {
 
     this.hits = 1
   }
+  get rawMV () {
+    if (this.rawMotionValue === null) {return 100} else {return this.rawMotionValue}
+  }
 
   sharpMods(color) {
     if (!this.sharp) {
@@ -573,16 +578,21 @@ class Weapon {
     }
   }
 
-  bowgunElement(sk) {
-      if (this.name === 'lbg' || this.name === 'hbg') {
-        sk.eleMult.push(0.95)
+  bowgunElement(game, sk) {
+    switch (this.name) {
+      case 'lbg':
+      case 'hbg':
+        if (game === 'mhgu') {sk.eleMult.push(0.95)}
         this.element = this.raw + sk.addRaw
         this.nullRaw = true
-      }
+        break
+      default:
+        break
+    }
   }
 
-  calcWpElement(sk) {
-    this.bowgunElement(sk)
+  calcWpElement(game, sk) {
+    this.bowgunElement(game, sk)
     let wpElement = parseInt(this.element)
     let wpMults = 1
     if (sk.elemental) {
@@ -1688,8 +1698,8 @@ const worldSwitchCase = {
   '+ele': (load, v) => {return 'Adding to element is not supported'},
   '-ele': (load, v) => {return 'Subtracting from element is not supported'},
   'xele': (load, v) => {load.sk.eleMult.push(v); return true},
-  'we': (load, v) => {if (1<= v && v <= 3) {load.skill.we = v; return true} else {return 'Failed to parse Weakness Exploit'}},
-  'cb': (load, v) => {if (1<= v && v <= 3) {load.skill.cb = v; return true} else {return 'Failed to parse Critical Boost'}},
+  'we': (load, v) => {if (1<= v && v <= 3) {load.sk.WE = v; return true} else {return 'Failed to parse Weakness Exploit'}},
+  'cb': (load, v) => {if (1<= v && v <= 3) {load.sk.CB = v; return true} else {return 'Failed to parse Critical Boost'}},
   'ab': (load, v) => {
     switch(v) {
       case 1:

@@ -24,7 +24,7 @@ class Weapon {
     this.sharp
 
     this.raw = 0
-    this.rawMotionValue = 100
+    this.rawMotionValue = null
     this.rawMult = 1.0
     this.sharpRaw = 1.0
 
@@ -37,6 +37,9 @@ class Weapon {
 
     this.hits = 1
   }
+  get rawMV () {
+    if (this.rawMotionValue === null) {return 100} else {return this.rawMotionValue}
+  }
 
   sharpMods(color) {
     if (!this.sharp) {
@@ -46,16 +49,21 @@ class Weapon {
     }
   }
 
-  bowgunElement(sk) {
-      if (this.name === 'lbg' || this.name === 'hbg') {
-        sk.eleMult.push(0.95)
+  bowgunElement(game, sk) {
+    switch (this.name) {
+      case 'lbg':
+      case 'hbg':
+        if (game === 'mhgu') {sk.eleMult.push(0.95)}
         this.element = this.raw + sk.addRaw
         this.nullRaw = true
-      }
+        break
+      default:
+        break
+    }
   }
 
-  calcWpElement(sk) {
-    this.bowgunElement(sk)
+  calcWpElement(game, sk) {
+    this.bowgunElement(game, sk)
     let wpElement = parseInt(this.element)
     let wpMults = 1
     if (sk.elemental) {

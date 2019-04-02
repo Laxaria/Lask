@@ -18,8 +18,8 @@ const worldSwitchCase = {
   '+ele': (load, v) => {return 'Adding to element is not supported'},
   '-ele': (load, v) => {return 'Subtracting from element is not supported'},
   'xele': (load, v) => {load.sk.eleMult.push(v); return true},
-  'we': (load, v) => {if (1<= v && v <= 3) {load.skill.we = v; return true} else {return 'Failed to parse Weakness Exploit'}},
-  'cb': (load, v) => {if (1<= v && v <= 3) {load.skill.cb = v; return true} else {return 'Failed to parse Critical Boost'}},
+  'we': (load, v) => {if (1<= v && v <= 3) {load.sk.WE = v; return true} else {return 'Failed to parse Weakness Exploit'}},
+  'cb': (load, v) => {if (1<= v && v <= 3) {load.sk.CB = v; return true} else {return 'Failed to parse Critical Boost'}},
   'ab': (load, v) => {
     switch(v) {
       case 1:
