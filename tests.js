@@ -10,7 +10,7 @@ let TESTS = {
     'value': 27
   },
   '3' : {
-    'string': '320 raw, 40 aff, 0.45 hz, we, cb, +22 raw, ce3',
+    'string': 'mhgu: 320 raw, 40 aff, 0.45 hz, we, cb, +22 raw, ce3',
     'value': 215
   },
   '4' : {
@@ -18,7 +18,7 @@ let TESTS = {
     'value': 'fail'
   },
   '5' : {
-    'string': '320 raw, 40 aff, 60 hz, 1.5x raw, we, cb',
+    'string': 'mhgu: 320 raw, 40 aff, 60 hz, 1.5x raw, we, cb',
     'value': 391
   },
   '6' : {
@@ -35,7 +35,7 @@ let TESTS = {
   },
   '9' : {
     'string': 'hbg: 40 aff, 15 hz, we, 320 raw, sprdup',
-    'value': 102
+    'value': 101
   },
   '10' : {
     'string': '320 raw',
@@ -54,15 +54,15 @@ let TESTS = {
     'value': 200
   },
   '13' : {
-    'string': 'bow: 100 fire, 100 aff, 100 ehz, elecrit',
+    'string': 'mhgu bow: 100 fire, 100 aff, 100 ehz, elecrit',
     'value': 100 * 1.35
   },
   '14' : {
-    'string': 'db: 100 raw, 10 fire, 0.28 mv, we, cb, 40 aff, 45 hz, 20 ehz, white sharp, elecrit',
+    'string': 'mhgu db: 100 raw, 10 fire, 0.28 mv, we, cb, 40 aff, 45 hz, 20 ehz, white sharp, elecrit',
     'value': 25
   },
   '15' : {
-    'string': 'db: 40 thun, eatk2, white sharp, 100 aff, critele, elemental, 1.3x ele',
+    'string': 'mhgu db: 40 thun, eatk2, white sharp, 100 aff, critele, elemental, 1.3x ele',
     'value': 106
   },
   '16' : {
@@ -70,8 +70,8 @@ let TESTS = {
       'value': 278
   },
   '17' : {
-    'string': 'lbg: 320 raw, ch+2, .69 emv, elemental, eatk2, .05 mv, 40 hz, 20 ehz',
-    'value': 66
+    'string': 'mhgu lbg: 320 raw, ch+2, .69 emv, elemental, eatk2, .05 mv, 40 hz, 20 ehz',
+    'value': 63
   },
   '18' : {
     'string': 'bow: 320 raw, rup, 5x hits,',
@@ -81,6 +81,10 @@ let TESTS = {
     'string': 'mhworld bow: 320 raw, 40 aff, ab4',
     'value': 369
   },
+  // '20' : {
+  //   'string': 'lbg: 280 raw, eatk2, 45 hz, we, cb, elecrit, 0.21 mv, 0.45 ehz,',
+  //   'value': 352
+  // },
 }
 
 Object.entries(TESTS).forEach(([test, data]) => {

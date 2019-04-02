@@ -64,9 +64,9 @@ function submitData () {
   dataPromise.then((value) => {
     let str
     if (!(value instanceof Error)) {
-      str = `${value.type} is ${value.totalDamage} \n ----`
+      str = `${value.damageClassification} is ${value.totalDamage} \n ----`
     } else {
-      str = value.message
+      str = value.message + '\n ----'
     }
     let subDiv = document.createElement("div");
     subDiv.innerText = str;

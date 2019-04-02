@@ -46,31 +46,13 @@ const switchCase = {
         return 'Challenge can only be at level 1 or level 2'
     }
   },
-  'sharp': (load, v) => {load.wp.sharpMods(v); return true},
+  'sharp': (load, v) => {load.wp.sharp = v; return true},
   'lbg': (wp) => {wp.rawMult = 1.3; return true},
   'hbg': (wp) => {wp.rawMult = 1.48; return true},
   'sns': (wp) => {wp.rawMult = 1.06; return true},
   'gs': (wp) => {wp.rawMult = 1.05; return true},
   'ls': (wp) => {wp.rawMult = 1.05; return true},
-  'elecrit' (wp) { 
-    switch (wp.name) {
-      case 'lbg':
-      case 'hbg':
-        wp.eleCritMult = 0.3
-        return true
-      case 'bow':
-      case 'sns':
-      case 'db':
-      case 'dbs':
-        wp.eleCritMult = 0.35
-        return true
-      case 'gs':
-        wp.eleCritMult = 0.3
-        return true
-      default:
-        wp.eleCritMult = 0.25
-    }
-  },
+  'elecrit' (wp) {wp.eleCritMult = true; return true},
   'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'rup', 'sprdup', 'pup', 'tsu', 'sprdup', 'pp', 'elemental', 'critdraw'],
   'weaponstats': ['elecrit'],
   'weapons': ['lbg', 'hbg', 'sns'],
@@ -81,8 +63,8 @@ class MHGUSieve {
   constructor() {}
 
   wepSieve (weapon) {
-    if (switchCase['weapons'].includes(weapon.name)) {
-      switchCase[weapon.name](weapon)
+    if (switchCase['weapons'].includes(weapon.type)) {
+      switchCase[weapon.type](weapon)
     }
   }
   sieve (parsedData = null, weapon = null, skills = null, monster = null) {

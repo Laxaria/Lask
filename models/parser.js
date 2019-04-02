@@ -20,8 +20,12 @@ class CLIParser {
     this.Sieve 
   };
   
-  parse(cliString, weapon, skills, monster) {
+  parse(cliString, mhSet) {
     let results = this.getParsed(cliString)
+    
+    let weapon = mhSet[0]
+    let skills = mhSet[1]
+    let monster = mhSet[2]
 
     if (this.error instanceof Error) { return }
     let data = results[0]
@@ -42,7 +46,7 @@ class CLIParser {
       this.Sieve = new MHWorldSieve()
     }
 
-    weapon.name = data['weapon']
+    weapon.type = data['weapon']
     this.Sieve.wepSieve(weapon)
 
     let parsedData = data['data']
@@ -60,15 +64,21 @@ class CLIParser {
       let keyword = row[0]
       let structData = new ParserOutput(game, keyword, value, operand)
 
+      // Clean up some keywords
+
+      switch (keyword) {
+        case 'critele':
+          structData.keyword = 'elecrit'
+          break
+        case 'au':
+          structData.keyword = 'ab'
+      }
+      
+      //  Sieving data to parser
       switch (keyword) {
         case null:
           this.parseError('There was a parser error, likely due to a string not triggering a keyword.')
           break
-        case 'critele':
-          structData.keyword = 'elecrit'
-        // case 'au':
-        //   structData.keyword = 'ab'
-        //   console.log(structData)
         case 'ce':
         case 'ch':
         case 'sharp':
