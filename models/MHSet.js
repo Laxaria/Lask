@@ -127,14 +127,20 @@ class MHSet {
         return _struct
       default:
         switch (this.weapon.sharp) {
-          case null:
+          case 'purple':
+          case 'white':
+          case 'blue':
+          case 'green':
+          case 'yellow':
+          case 'orange':
+          case 'red':
+            _struct.raw = this._sharps(this.game, 'raw', this.weapon.sharp)
+            _struct.element = this._sharps(this.game, 'element', this.weapon.sharp)
+            return _struct
+          default:
             this._assumptions.push('A sharpness multiplier of 1.0x raw and 1.0x element was added.')
             _struct.raw = 1.00
             _struct.element = 1.00
-            return _struct
-          default:
-            _struct.raw = this._sharps(this.game, 'raw', this.weapon.sharp)
-            _struct.element = this._sharps(this.game, 'element', this.weapon.sharp)
             return _struct
         } 
     }
