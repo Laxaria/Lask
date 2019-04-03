@@ -5,9 +5,10 @@ const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
 const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
 const games = ['mhgu', 'mhworld']
 const keys = ['traw', 'draw', 'dele', 'raw', 'aff', 'ab', 'hz', 'ehz', 'mv', 'emv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp', 'critdraw', 'hits', 'nup']
+const worlds =['heroics', 'resentment', 'agitator', 'neb', 'nshots', 'pshots', 'sprdshots']
 const mhguAtkSkills = ['aus', 'aum', 'aul']
 const elements = ['fire', 'ice', 'water', 'thunder', 'dragon', 'thun', 'dra', 'ele', 'eatk', 'elemental', 'critele', 'elecrit']
-const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps, elements)
+const totals = [].concat(mhguAtkSkills, weps, games, keys, sharps, elements, worlds)
 
 const lexer = moo.compile({
   myError: {match: /[\$?`]/, error: true},
@@ -21,6 +22,7 @@ const lexer = moo.compile({
           key: keys,
           sharp: sharps,
           element: elements,
+          world: worlds,
          }},
   decimal: /\d{0,3}\.\d{1,3}/, 
   number: /[0-9]+/,

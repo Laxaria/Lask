@@ -55,7 +55,7 @@ const switchCase = {
   'elecrit' (wp) {wp.eleCritMult = true; return true},
   'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'rup', 'sprdup', 'pup', 'tsu', 'sprdup', 'pp', 'elemental', 'critdraw'],
   'weaponstats': ['elecrit'],
-  'weapons': ['lbg', 'hbg', 'sns'],
+  'weapons': ['lbg', 'hbg', 'sns', 'gs', 'ls'],
   'elements': ['fire', 'water', 'ice', 'thunder', 'dra', 'thun'],
 }
 

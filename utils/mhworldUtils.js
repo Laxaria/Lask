@@ -1,12 +1,8 @@
 const worldSwitchCase = {
-  'pp': (sk) => {sk.addRaw += 20; return true},
-  'rup': (sk) => {sk.rawMult.push(1.1); return true},
-  'nup': (sk) => {sk.rawMult.push(1.1); return true},
-  'pup': (sk) => {sk.rawMult.push(1.1); return true},
-  'tsu': (sk) => {sk.rawMult.push(1.2); return true},
-  'sprdup': (sk) => {sk.rawMult.push(1.3); return true},
-  'critdraw': (sk) => {sk.addAff += 100; return true},
-  'elemental': (sk) => {sk.elemental = true; return true},
+  'neb': (sk) => {sk.rawMult.push(1.1); return true},
+  'nshots': (sk) => {sk.rawMult.push(1.1); return true},
+  'pshots': (sk) => {sk.rawMult.push(1.1); return true},
+  'sprdshots': (sk) => {sk.rawMult.push(1.1); return true},
   'raw': (load, v) => { if (load.wp.raw === 0) {load.wp.raw = v; return true} else {return 'Weapon raw assigned more than once'}},
   'aff': (load, v) => { if (load.wp.affinity === 0) {load.wp.affinity = v; return true} else {return 'Weapon affinity assigned more than once'}},
   'ele': (load, v) => { if (load.wp.element === 0) {load.wp.element = v; return true} else {return 'Weapon element assigned more than once'}},
@@ -20,6 +16,21 @@ const worldSwitchCase = {
   'xele': (load, v) => {load.sk.eleMult.push(v); return true},
   'we': (load, v) => {if (1<= v && v <= 3) {load.sk.WE = v; return true} else {return 'Failed to parse Weakness Exploit'}},
   'cb': (load, v) => {if (1<= v && v <= 3) {load.sk.CB = v; return true} else {return 'Failed to parse Critical Boost'}},
+  'critdraw': (load, v) => {
+    switch (v) {
+      case 1:
+        load.sk.addAff += 30
+        return true
+      case 2:
+        load.sk.addAff += 60
+        return true
+      case 3:
+        load.sk.addAff += 100
+        return true
+      default:
+        return 'Failed to parse Critical Boost'
+    }
+  },
   'ab': (load, v) => {
     switch(v) {
       case 1:
@@ -37,7 +48,24 @@ const worldSwitchCase = {
       default:
         return 'Failed to parse attack boos'
     }; return true},
-  'eatk': (load, v) => {if (v === 1 || v === 2) {load.sk.eleAttack = v; return true} else {return '[Element] Attack can only go to 2'}},
+  'pp': (load, v) => {
+    switch (v) {
+      case 1:
+        load.sk.addRaw += 5
+        return true
+      case 2:
+        load.sk.addRaw += 10
+        return true
+      case 3:
+        load.sk.addRaw += 20
+        return true
+      default:
+        return 'Failed to parse Peak Performance'
+      }
+    },
+  'heroics': (load, v) => {if (1 <= v && v <= 5) {load.sk.rawMult.push(1 + v * 0.05); return true} else {return 'Heroics can only go to 5'}},
+  'resentment': (load, v) => {if (1 <= v && v <= 5) {load.sk.addRaw += v * 5; return true} else {return 'Resentment can only go to 5'}},
+  'eatk': (load, v) => {if (1 <= v && v <= 5) {load.sk.eleAttack = v; return true} else {return '[Element] Attack can only go to 5'}},
   'xaff': () => {return 'Multipliers to affinity are not allowed'},
   'hits': (load, v) => {load.wp.hits = v; return true},
   'hz': (load, v) => {if (0 <= v && v <= 2) { load.m.rawHitzone = v * 100 } else {load.m.rawHitzone = v}; return true},
@@ -69,47 +97,25 @@ const worldSwitchCase = {
   'mv': (load, v) => {if (v <= 0.99) {load.wp.rawMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
   'emv': (load, v) => {if (v <= 0.99) {load.wp.eleMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
   'gdm': (load, v) => {if (v >= 1.5) {return 'Global Def Mod value should be less than 1~'} else {load.m.globalDefMod = v; return true}},
-  'ch': (load, v) => { 
+  'agitator': (load, v) => { 
     switch (v) {
       case 1:
-        load.sk.addAff += 10
-        load.sk.addRaw += 10
-        return true
       case 2:
-        load.sk.addAff += 15
-        load.sk.addRaw += 20 
+      case 3:
+      case 4:
+      case 5:
+        load.sk.addAff += 3 * v
+        load.sk.addRaw += 4 * v
         return true
       default:
-        return 'Challenge can only be at level 1 or level 2'
+        return 'Agitator can only be at level 1 to level 5'
     }
   },
-  'sharp': (load, v) => {load.wp.sharpMods(v); return true},
-  'lbg': (wp) => {wp.rawMult = 1.3; return true},
-  'hbg': (wp) => {wp.rawMult = 1.48; return true},
-  'gs': (wp) => {wp.rawMult = 1.05; return true},
-  'ls': (wp) => {wp.rawMult = 1.05; return true},
-  'elecrit' (wp) { 
-    switch (wp.name) {
-      case 'lbg':
-      case 'hbg':
-        wp.eleCritMult = 0.3
-        return true
-      case 'bow':
-      case 'sns':
-      case 'db':
-      case 'dbs':
-        wp.eleCritMult = 0.35
-        return true
-      case 'gs':
-        wp.eleCritMult = 0.3
-        return true
-      default:
-        wp.eleCritMult = 0.25
-    }
-  },
-  'statics': ['rup', 'sprdup', 'pup', 'tsu', 'sprdup', 'pp', 'elemental'],
+  'sharp': (load, v) => {load.wp.sharp = v; return true},
+  'elecrit' (wp) {wp.eleCritMult = true; return true},
+  'statics': ['rup', 'sprdup', 'pup', 'sprdup', 'elemental', 'neb', 'nshots', 'pshots', 'sprdshots'],
   'weaponstats': ['elecrit'],
-  'weapons': ['lbg', 'hbg', 'sns'],
+  'weapons': [],
   'elements': ['fire', 'water', 'ice', 'thunder', 'dra', 'thun'],
 }
 
@@ -121,6 +127,7 @@ class MHWorldSieve {
       worldSwitchCase[weapon.name](weapon)
     }
   }
+
   sieve (parsedData = null, weapon = null, skills = null, monster = null) {
 
     let load = {

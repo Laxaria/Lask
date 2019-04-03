@@ -22,7 +22,7 @@ class CLIParser {
   
   parse(cliString, mhSet) {
     let results = this.getParsed(cliString)
-    
+
     let weapon = mhSet[0]
     let skills = mhSet[1]
     let monster = mhSet[2]
@@ -73,6 +73,7 @@ class CLIParser {
         case 'au':
           structData.keyword = 'ab'
       }
+      console.log(keyword)
       
       //  Sieving data to parser
       switch (keyword) {
@@ -86,6 +87,13 @@ class CLIParser {
         case 'nup':
         case 'hits':
         case 'ab':
+        case 'heroics':
+        case 'pp':
+        case 'resentment':
+        case 'nshots':
+        case 'pshots':
+        case 'sprdshots':
+        case 'neb':
           structData.operand = null
         default:
           let check = this.Sieve.sieve(structData, weapon, skills, monster)

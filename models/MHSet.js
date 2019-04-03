@@ -6,6 +6,7 @@ class MHSet {
     this.skills = skills
     this.monster = monster
     this._assumptions = []
+    this.errors = null
   }
 
   _sharps(game, type, color) {
@@ -46,7 +47,7 @@ class MHSet {
   get data() {
     return [this.weapon, this.skills, this.monster]
   }
-  
+
   get weaponType() {
     return this.weapon.type
   }
@@ -163,7 +164,7 @@ class MHSet {
     switch (this.weapon.eleMotionValue) {
       case null:
         if (this.weaponType === 'lbg' || this.weaponType === 'hbg') {
-          this._assumptions.push('Weapon element motion value was must be set.')
+          this._assumptions.push('Weapon element motion value was 100.')
           return null
         } else {
           this._assumptions.push('Weapon element motion value was 100.')
@@ -217,7 +218,8 @@ class MHSet {
           this.weapon.element = 0
         }
     }
-    let wpElement = this.weapon.element
+    let wpElement = parseInt(this.weapon.element)
+    console.log(wpElement)
     let wpEleMults = 1.0
     switch (this.game) {
       case 'mhgu':
@@ -237,6 +239,31 @@ class MHSet {
             break
         }
         case 'mhworld':
+          if (this.skills.elemental) {
+            wpEleMults += 0.1
+          }
+          switch (this.skills.eleAttack) {
+            case 1:
+              wpElement += 3
+              break
+            case 2:
+              wpElement += 6
+              break
+            case 3:
+              wpElement += 10
+              break
+            case 4:
+              wpEleMults += 0.05
+              wpElement = Math.floor(wpElement * wpEleMults) + 10
+              break
+            case 5:
+              wpEleMults += 0.10
+              wpElement = Math.floor(wpElement * wpEleMults) + 10
+              break
+          }
+          if (wpElement >= this.weapon.element * 1.33) {
+            wpElement = Math.floor(this.weapon.element * 1.33)
+          }
           break
         default:
           break
@@ -329,6 +356,7 @@ class MHSet {
     if (this.weapon.eleCritMult === true) {
       switch (this.game) {
         case 'mhgu':
+        case 'mhworld':
           switch (this.weapon.type) {
             case 'lbg':
             case 'hbg':
@@ -339,11 +367,10 @@ class MHSet {
             case 'dbs':
               return 0.35
             case 'gs':
-              return 0.30
+              return 0.2
             default:
               return 0.25
           }
-        case 'mhworld':
         case 'default':
           return 0.25
       }

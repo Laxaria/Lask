@@ -38,7 +38,7 @@ class Lask {
       cliString = cliString.slice(0, cliString.length -1)
     }
     this._createMHSet(this.game, this.weapon, this.skills, this.monster)
-    
+
     this.parser.parse(cliString, this.mhSet.data)
     
   }
@@ -74,6 +74,7 @@ class Lask {
     if (this.parser.error instanceof Error) { return this.parser.error }
     else { 
       let output = damageCalculator.effectiveDmgCalc(debug) 
+      if (this.mhSet.errors instanceof Error) { return this.mhSet.errors }
       if (debug) {console.log(output)}
       return output
     }
