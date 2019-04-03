@@ -94,8 +94,8 @@ const worldSwitchCase = {
       default:
         return 'Failed to parse crit eye'
     } return true },
-  'mv': (load, v) => {if (v <= 0.99) {load.wp.rawMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
-  'emv': (load, v) => {if (v <= 0.99) {load.wp.eleMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
+  'mv': (load, v) => {if (v <= 0.99) {load.wp.rawMotionValue = v * 100; return true} else if (1.0 <= v && v <= 3.0) {load.wp.rawMotionValue = v; return true} else {return 'Raw Motion value can only go up to about 5~.'}},
+  'emv': (load, v) => {if (v <= 0.99) {load.wp.eleMotionValue = v * 100; return true} else if (1.0 <= v && v <= 3.0) {load.wp.eleMotionValue = v; return true} else {return 'Ele Motion value can only go up to about 5~.'}},
   'gdm': (load, v) => {if (v >= 1.5) {return 'Global Def Mod value should be less than 1~'} else {load.m.globalDefMod = v; return true}},
   'agitator': (load, v) => { 
     switch (v) {
@@ -129,7 +129,7 @@ class MHWorldSieve {
   }
 
   sieve (parsedData = null, weapon = null, skills = null, monster = null) {
-
+    
     let load = {
       wp: weapon,
       sk: skills,
@@ -157,8 +157,12 @@ class MHWorldSieve {
     }
   
     if (parsedData.operand === null) {parsedData.operand = ''}
-  
-    return worldSwitchCase[parsedData.operand+parsedData.keyword](load, parsedData.value)
+    try {
+      return worldSwitchCase[parsedData.operand+parsedData.keyword](load, parsedData.value)
+    } catch (err) {
+      return `Unable to parse value associated with ${parsedData.keyword}`
+    }
+
   }
 }
 

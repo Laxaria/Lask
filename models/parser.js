@@ -73,7 +73,6 @@ class CLIParser {
         case 'au':
           structData.keyword = 'ab'
       }
-      console.log(keyword)
       
       //  Sieving data to parser
       switch (keyword) {
@@ -94,6 +93,10 @@ class CLIParser {
         case 'pshots':
         case 'sprdshots':
         case 'neb':
+        case 'mv':
+        case 'hz':
+        case 'ehz':
+        case 'emv':
           structData.operand = null
         default:
           let check = this.Sieve.sieve(structData, weapon, skills, monster)

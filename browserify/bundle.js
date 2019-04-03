@@ -45,7 +45,7 @@ class Lask {
   }
 
   error() {
-    if (this.parser.error instanceof Error) { return true }
+    if (this.parser.error instanceof Error) { return true } else {return false}
   }
 
   errorMessage() {
@@ -76,7 +76,7 @@ class Lask {
     else { 
       let output = damageCalculator.effectiveDmgCalc(debug) 
       if (this.mhSet.errors instanceof Error) { return this.mhSet.errors }
-      if (debug) {console.log(output)}
+      // if (debug) {console.log(output)}
       return output
     }
   }
@@ -523,7 +523,6 @@ class MHSet {
         }
     }
     let wpElement = parseInt(this.weapon.element)
-    console.log(wpElement)
     let wpEleMults = 1.0
     switch (this.game) {
       case 'mhgu':
@@ -772,7 +771,6 @@ class CLIParser {
         case 'au':
           structData.keyword = 'ab'
       }
-      console.log(keyword)
       
       //  Sieving data to parser
       switch (keyword) {
@@ -793,6 +791,10 @@ class CLIParser {
         case 'pshots':
         case 'sprdshots':
         case 'neb':
+        case 'mv':
+        case 'hz':
+        case 'ehz':
+        case 'emv':
           structData.operand = null
         default:
           let check = this.Sieve.sieve(structData, weapon, skills, monster)
@@ -1843,8 +1845,8 @@ const switchCase = {
   'hz': (load, v) => {if (0 <= v && v <= 2) { load.m.rawHitzone = v * 100 } else {load.m.rawHitzone = v}; return true},
   'ehz': (load, v) => {if (0 <= v && v <= 2) { load.m.eleHitzone = v * 100 } else {load.m.eleHitzone = v}; return true},
   'ce': (load, v) => {if (1 <= v && v <= 3) { load.sk.addAff += v * 10; return true} else {return 'MHGU Crit Eye ranges only from 1 - 3'}},
-  'mv': (load, v) => {if (v <= 0.99) {load.wp.rawMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
-  'emv': (load, v) => {if (v <= 0.99) {load.wp.eleMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
+  'mv': (load, v) => {if (v <= 0.99) {load.wp.rawMotionValue = v * 100; return true} else if (1.0 <= v && v <= 3.0) {load.wp.rawMotionValue = v; return true} else {return 'Raw Motion value can only go up to about 5~.'}},
+  'emv': (load, v) => {if (v <= 0.99) {load.wp.eleMotionValue = v * 100; return true} else if (1.0 <= v && v <= 3.0) {load.wp.eleMotionValue = v; return true} else {return 'Ele Motion value can only go up to about 5~.'}},
   'gdm': (load, v) => {if (v >= 1.5) {return 'Global Def Mod value should be less than 1~'} else {load.m.globalDefMod = v; return true}},
   'ch': (load, v) => { 
     switch (v) {
@@ -1867,7 +1869,7 @@ const switchCase = {
   'gs': (wp) => {wp.rawMult = 1.05; return true},
   'ls': (wp) => {wp.rawMult = 1.05; return true},
   'elecrit' (wp) {wp.eleCritMult = true; return true},
-  'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'rup', 'sprdup', 'pup', 'tsu', 'sprdup', 'pp', 'elemental', 'critdraw'],
+  'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'rup', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup', 'pp', 'elemental', 'critdraw'],
   'weaponstats': ['elecrit'],
   'weapons': ['lbg', 'hbg', 'sns', 'gs', 'ls'],
   'elements': ['fire', 'water', 'ice', 'thunder', 'dra', 'thun'],
@@ -1910,7 +1912,11 @@ class MHGUSieve {
   
     if (parsedData.operand === null) {parsedData.operand = ''}
   
-    return switchCase[parsedData.operand+parsedData.keyword](load, parsedData.value)
+    try {
+      return switchCase[parsedData.operand+parsedData.keyword](load, parsedData.value)
+    } catch (err) {
+      return `Unable to parse value associated with ${parsedData.keyword}`
+    }
   }
 }
 
@@ -2012,8 +2018,8 @@ const worldSwitchCase = {
       default:
         return 'Failed to parse crit eye'
     } return true },
-  'mv': (load, v) => {if (v <= 0.99) {load.wp.rawMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
-  'emv': (load, v) => {if (v <= 0.99) {load.wp.eleMotionValue = v * 100} else {load.wp.rawMotionValue = v}; return true},
+  'mv': (load, v) => {if (v <= 0.99) {load.wp.rawMotionValue = v * 100; return true} else if (1.0 <= v && v <= 3.0) {load.wp.rawMotionValue = v; return true} else {return 'Raw Motion value can only go up to about 5~.'}},
+  'emv': (load, v) => {if (v <= 0.99) {load.wp.eleMotionValue = v * 100; return true} else if (1.0 <= v && v <= 3.0) {load.wp.eleMotionValue = v; return true} else {return 'Ele Motion value can only go up to about 5~.'}},
   'gdm': (load, v) => {if (v >= 1.5) {return 'Global Def Mod value should be less than 1~'} else {load.m.globalDefMod = v; return true}},
   'agitator': (load, v) => { 
     switch (v) {
@@ -2047,7 +2053,7 @@ class MHWorldSieve {
   }
 
   sieve (parsedData = null, weapon = null, skills = null, monster = null) {
-
+    
     let load = {
       wp: weapon,
       sk: skills,
@@ -2075,8 +2081,12 @@ class MHWorldSieve {
     }
   
     if (parsedData.operand === null) {parsedData.operand = ''}
-  
-    return worldSwitchCase[parsedData.operand+parsedData.keyword](load, parsedData.value)
+    try {
+      return worldSwitchCase[parsedData.operand+parsedData.keyword](load, parsedData.value)
+    } catch (err) {
+      return `Unable to parse value associated with ${parsedData.keyword}`
+    }
+
   }
 }
 

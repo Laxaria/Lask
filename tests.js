@@ -15,7 +15,7 @@ let TESTS = {
   },
   '4' : {
     'string': 'nad, good, haha',
-    'value': 'fail'
+    'value': 123
   },
   '5' : {
     'string': 'mhgu: 320 raw, 40 aff, 60 hz, 1.5x raw, we, cb',
@@ -63,28 +63,28 @@ let TESTS = {
   },
   '15' : {
     'string': 'mhgu db: 40 thun, eatk2, white sharp, 100 aff, critele, elemental, 1.3x ele',
-    'value': 106
+    'value': 104
   },
   '16' : {
       'string': 'gs: critdraw, 320 raw, purple sharp, 0.5 hz',
-      'value': 278
+      'value': 291
   },
   '17' : {
     'string': 'mhgu lbg: 320 raw, ch+2, .69 emv, elemental, eatk2, .05 mv, 40 hz, 20 ehz',
     'value': 63
   },
   '18' : {
-    'string': 'bow: 320 raw, rup, 5x hits,',
+    'string': 'bow: 320 raw, nup, 5x hits,',
     'value': 320 * 1.1
   },
   '19' : {
     'string': 'mhworld bow: 320 raw, 40 aff, ab4',
     'value': 369
   },
-  // '20' : {
-  //   'string': 'lbg: 280 raw, eatk2, 45 hz, we, cb, elecrit, 0.21 mv, 0.45 ehz,',
-  //   'value': 352
-  // },
+  '20' : {
+    'string': 'lbg: 280 raw, eatk2, 45 hz, we, cb, elecrit, 0.21 mv, 0.45 ehz,',
+    'value': 41
+  },
 }
 
 Object.entries(TESTS).forEach(([test, data]) => {

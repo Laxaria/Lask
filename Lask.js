@@ -44,7 +44,7 @@ class Lask {
   }
 
   error() {
-    if (this.parser.error instanceof Error) { return true }
+    if (this.parser.error instanceof Error) { return true } else {return false}
   }
 
   errorMessage() {
@@ -75,7 +75,7 @@ class Lask {
     else { 
       let output = damageCalculator.effectiveDmgCalc(debug) 
       if (this.mhSet.errors instanceof Error) { return this.mhSet.errors }
-      if (debug) {console.log(output)}
+      // if (debug) {console.log(output)}
       return output
     }
   }

@@ -219,7 +219,6 @@ class MHSet {
         }
     }
     let wpElement = parseInt(this.weapon.element)
-    console.log(wpElement)
     let wpEleMults = 1.0
     switch (this.game) {
       case 'mhgu':
