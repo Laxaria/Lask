@@ -1,5 +1,5 @@
 class Monster {
-  constructor() {
+  constructor () {
     this.rawHitzone = null
     this.eleHitzone = null
     this.globalDefMod = null

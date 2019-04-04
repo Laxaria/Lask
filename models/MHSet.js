@@ -1,6 +1,6 @@
 
 class MHSet {
-  constructor(game, weapon, skills, monster) {
+  constructor (game, weapon, skills, monster) {
     this.game = game
     this.weapon = weapon
     this.skills = skills
@@ -9,7 +9,7 @@ class MHSet {
     this.errors = null
   }
 
-  _sharps(game, type, color) {
+  _sharps (game, type, color) {
     const sharpConstantsRaw = {
       'purple': 1.39,
       'white': 1.32,
@@ -20,7 +20,7 @@ class MHSet {
       'red': 0.50,
       'null': 1.0
     }
-    
+
     const sharpConstantsEle = {
       'purple': 1.2,
       'white': 1.125,
@@ -44,19 +44,19 @@ class MHSet {
         }
     }
   }
-  get data() {
-    return [this.weapon, this.skills, this.monster]
+  get data () {
+    return [this.game, this.weapon, this.skills, this.monster]
   }
 
-  get weaponType() {
+  get weaponType () {
     return this.weapon.type
   }
 
-  get weaponNullRaw() {
+  get weaponNullRaw () {
     return this.weapon.nullRaw
   }
 
-  get stringWeaponRawMult() {
+  get stringWeaponRawMult () {
     if (this.skills.rawMult.length === 0) {
       return ''
     } else {
@@ -64,7 +64,7 @@ class MHSet {
     }
   }
 
-  get assumptions() {
+  get assumptions () {
     let _sets = new Set(this._assumptions)
     let _assums = []
     switch (this._assumptions.length) {
@@ -73,7 +73,7 @@ class MHSet {
       default:
         let counter = 0
         for (let e of _sets.entries()) {
-          _assums.push(`(${counter+1}) ${e[0]}`)
+          _assums.push(`(${counter + 1}) ${e[0]}`)
           counter += 1
         }
         break
@@ -81,11 +81,11 @@ class MHSet {
     return `${_assums.join(' ')}`
   }
 
-  get weaponHits() {
+  get weaponHits () {
     return this.weapon.hits
   }
 
-  get monsterRawHitzone() {
+  get monsterRawHitzone () {
     switch (this.monster.rawHitzone) {
       case null:
         this._assumptions.push('Monster had a 100 element hitzone.')
@@ -95,7 +95,7 @@ class MHSet {
     }
   }
 
-  get monsterEleHitzone() {
+  get monsterEleHitzone () {
     switch (this.monster.eleHitzone) {
       case null:
         this._assumptions.push('Monster had a 100 element hitzone.')
@@ -105,7 +105,7 @@ class MHSet {
     }
   }
 
-  get monsterDefMod() {
+  get monsterDefMod () {
     switch (this.monster.globalDefMod) {
       case null:
         this._assumptions.push('Monster defense modifier was 1.0')
@@ -115,7 +115,7 @@ class MHSet {
     }
   }
 
-  get weaponSharpMod() {
+  get weaponSharpMod () {
     let _struct = {
       'raw': 1.00,
       'element': 1.00
@@ -142,11 +142,11 @@ class MHSet {
             _struct.raw = 1.00
             _struct.element = 1.00
             return _struct
-        } 
+        }
     }
   }
 
-  get weaponRawModifier() {
+  get weaponRawModifier () {
     switch (this.weapon.rawMult) {
       case null:
         return 1
@@ -156,17 +156,17 @@ class MHSet {
     }
   }
 
-  get weaponRawMV() {
+  get weaponRawMV () {
     switch (this.weapon.rawMotionValue) {
       case null:
         this._assumptions.push('Weapon raw motion value was 100.')
         return 100
       default:
-      return this.weapon.rawMotionValue
+        return this.weapon.rawMotionValue
     }
   }
 
-  get weaponEleMV() {
+  get weaponEleMV () {
     switch (this.weapon.eleMotionValue) {
       case null:
         if (this.weaponType === 'lbg' || this.weaponType === 'hbg') {
@@ -181,27 +181,27 @@ class MHSet {
     }
   }
 
-  get weaponRaw() {
+  get weaponRaw () {
     return this.weapon.raw
   }
 
-  get additionalRaw() {
+  get additionalRaw () {
     return this.skills.addRaw
   }
 
-  get weaponTotalRaw() {
+  get weaponTotalRaw () {
     return this.weapon.raw + this.skills.addRaw
   }
 
-  get weaponAffinity() {
+  get weaponAffinity () {
     return this.weapon.affinity
   }
 
-  get additionalAffinity() {
+  get additionalAffinity () {
     return this.skills.addAff
   }
 
-  get weaponTotalAffinity() {
+  get weaponTotalAffinity () {
     let _totalAffinity = parseInt(this.weaponAffinity) + parseInt(this.additionalAffinity)
     if (this.monsterRawHitzone >= 45) {
       _totalAffinity += this.weModifier
@@ -212,20 +212,20 @@ class MHSet {
     return _totalAffinity
   }
 
-  get weaponElement() {
+  get weaponElement () {
+    let wpElement = parseInt(this.weapon.element)
+    let wpEleMults = 1.0
     switch (this.weapon.type) {
       case 'lbg':
       case 'hbg':
-        if (this.game === 'mhgu') {this.skills.eleMult.push(0.95)}
+        if (this.game === 'mhgu') { this.skills.eleMult.push(0.95) }
         if (this.weaponEleMV !== null) {
-          this.weapon.element = this.weaponTotalRaw
+          wpElement = this.weaponTotalRaw
           this.weapon.nullRaw = true
         } else {
-          this.weapon.element = 0
+          wpElement = 0
         }
     }
-    let wpElement = parseInt(this.weapon.element)
-    let wpEleMults = 1.0
     switch (this.game) {
       case 'mhgu':
         if (this.skills.elemental) {
@@ -243,35 +243,35 @@ class MHSet {
           default:
             break
         }
-        case 'mhworld':
-          if (this.skills.elemental) {
-            wpEleMults += 0.1
-          }
-          switch (this.skills.eleAttack) {
-            case 1:
-              wpElement += 3
-              break
-            case 2:
-              wpElement += 6
-              break
-            case 3:
-              wpElement += 10
-              break
-            case 4:
-              wpEleMults += 0.05
-              wpElement = Math.floor(wpElement * wpEleMults) + 10
-              break
-            case 5:
-              wpEleMults += 0.10
-              wpElement = Math.floor(wpElement * wpEleMults) + 10
-              break
-          }
-          if (wpElement >= this.weapon.element * 1.33) {
-            wpElement = Math.floor(this.weapon.element * 1.33)
-          }
-          break
-        default:
-          break
+        break
+      case 'mhworld':
+        switch (this.skills.eleAttack) {
+          case 1:
+            wpElement += 3
+            break
+          case 2:
+            wpElement += 6
+            break
+          case 3:
+            wpElement += 10
+            break
+          case 4:
+            wpEleMults += 0.05
+            wpElement = Math.floor(wpElement * wpEleMults) + 10
+            break
+          case 5:
+            wpEleMults += 0.10
+            wpElement = Math.floor(wpElement * wpEleMults) + 10
+            break
+          default:
+            break
+        }
+        if (wpElement >= this.weapon.element * 1.33) {
+          wpElement = Math.floor(this.weapon.element * 1.33)
+        }
+        break
+      default:
+        break
     }
     if (this.weapon.nullRaw && this.weapon.rawMV === null) {
       this._assumptions.push('No raw damage dealt for pure Bowgun elemental damage calculations. Indicate a raw mv to include raw damage.')
@@ -279,9 +279,9 @@ class MHSet {
     return parseFloat(wpElement)
   }
 
-  get rawMultipliers() {
+  get rawMultipliers () {
     let multiplier = 1.0
-    if (this.skills.rawMult.length == 0) {
+    if (this.skills.rawMult.length === 0) {
       return multiplier
     } else {
       this.skills.rawMult.forEach((i) => {
@@ -291,7 +291,7 @@ class MHSet {
     }
   }
 
-  get eleMultipliers() {
+  get eleMultipliers () {
     let multiplier = 1.0
     if (this.skills.eleMult.length === 0) {
       return multiplier
@@ -301,10 +301,9 @@ class MHSet {
       })
       return multiplier
     }
-
   }
 
-  get critModifier() {
+  get critModifier () {
     switch (this.game) {
       case 'mhgu':
         switch (this.skills.CB) {
@@ -312,8 +311,9 @@ class MHSet {
             return 0.40
           case false:
             return 0.25
+          default:
+            return 0.25
         }
-        break
       case 'mhworld':
         switch (this.skills.CB) {
           case 1:
@@ -330,7 +330,7 @@ class MHSet {
     }
   }
 
-  get weModifier() {
+  get weModifier () {
     switch (this.game) {
       case 'mhgu':
         switch (this.skills.WE) {
@@ -357,7 +357,7 @@ class MHSet {
     }
   }
 
-  get eleCritModifier() {
+  get eleCritModifier () {
     if (this.weapon.eleCritMult === true) {
       switch (this.game) {
         case 'mhgu':
@@ -383,7 +383,6 @@ class MHSet {
       return 0
     }
   }
-
 }
 
 module.exports = MHSet

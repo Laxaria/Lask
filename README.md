@@ -23,6 +23,7 @@ Lask requires the following:
 
 ```
 nearley
+standard
 ```
 
 ## Documentation
@@ -38,7 +39,10 @@ Lask functions on MH shorthand. Give Lask a comma-space (`, `) separated string 
 
 Lask parses for the following keywords:
 
-keyword      | effect
------------- | -------------
-`${number} we`         | MHGU: Add +50% affinity if connecting on a hitzone >= 0.45 (Lask defaults to `HZ = 1` unless indicated otherwise with a `HZ` entry)
-`${number} hz` | MHGU: Sets hitzone of monster part being hit
+#### Standard
+
+keyword                  | effect
+------------             | -------------
+`${number} hz`           | Sets raw hitzone of monster part being hit
+`${number} raw`          | Set weapon raw. Adding/subtracting raw can be indicated with `+${number} raw` or `-{number} raw`. Raw multipliers can be indicated with `${number}x raw
+`${number} aff`          | Set weapon affinity. Adding/subtracting affinity can be indicated with `+${number} aff` or `-{number} aff`

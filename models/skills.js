@@ -7,7 +7,7 @@ class Skills {
     this.WE = false
 
     this.rawMult = []
-    
+
     this.eleMult = []
     this.eleAttack = null
     this.elemental = false

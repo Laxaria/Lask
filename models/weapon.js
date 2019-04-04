@@ -10,7 +10,6 @@ class Weapon {
     this.sharpRaw = 1.0
 
     this.element = 0
-    this.calcElement
     this.sharpEle = 1.0
     this.eleCritMult = false
     this.eleMotionValue = null
