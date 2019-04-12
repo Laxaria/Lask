@@ -54,6 +54,7 @@ class Lask {
     } else {
       let output = damageCalculator.effectiveDmgCalc(debug)
       if (this.mhSet.errors instanceof Error) { return this.mhSet.errors }
+      // console.log(this.mhSet.assumptions)
       return output
     }
   }
@@ -353,7 +354,7 @@ class MHSet {
       default:
         let counter = 0
         for (let e of _sets.entries()) {
-          _assums.push(`(${counter + 1}) ${e[0]}`)
+          _assums.push(`[${counter + 1}] ${e[0]}`)
           counter += 1
         }
         break
@@ -437,13 +438,14 @@ class MHSet {
   }
 
   get weaponRawMV () {
-    switch (this.weapon.rawMotionValue) {
-      case null:
-        this._assumptions.push('Weapon raw motion value was 100.')
-        return 100
-      default:
-        return this.weapon.rawMotionValue
-    }
+    return this.weapon.rawMotionValue
+    // switch (this.weapon.rawMotionValue) {
+    //   case null:
+    //     this._assumptions.push('Weapon raw motion value was 100.')
+    //     return 100
+    //   default:
+    //     return this.weapon.rawMotionValue
+    // }
   }
 
   get weaponEleMV () {
@@ -553,7 +555,7 @@ class MHSet {
       default:
         break
     }
-    if (this.weapon.nullRaw && this.weapon.rawMV === null) {
+    if (this.weapon.nullRaw === true && this.weapon.rawMotionValue === null) {
       this._assumptions.push('No raw damage dealt for pure Bowgun elemental damage calculations. Indicate a raw mv to include raw damage.')
     }
     return parseFloat(wpElement)
@@ -1779,6 +1781,7 @@ function submitData () {
   let dataPromise = new Promise((resolve, reject) => {
     let dmg = new Lask()
     dmg.parseString(elements['CLI'].value)
+    console.log(dmg.mhSet.data)
     resolve(dmg.effectiveDmgCalc(true))
   })
   dataPromise.then((value) => {
@@ -1860,8 +1863,8 @@ class MHSieve {
       'hits': (load, v) => { load.wp.hits = v; return true },
       'hz': (load, v) => { if (v >= 0 && v <= 2) { load.m.rawHitzone = v * 100 } else { load.m.rawHitzone = v }; return true },
       'ehz': (load, v) => { if (v >= 0 && v <= 2) { load.m.eleHitzone = v * 100 } else { load.m.eleHitzone = v }; return true },
-      'mv': (load, v) => { if (v <= 0.99) { load.wp.rawMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 3.0) { load.wp.rawMotionValue = v; return true } else { return 'Raw Motion value can only go up to about 5~.' } },
-      'emv': (load, v) => { if (v <= 0.99) { load.wp.eleMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 3.0) { load.wp.eleMotionValue = v; return true } else { return 'Ele Motion value can only go up to about 5~.' } },
+      'mv': (load, v) => { if (v <= 0.99) { load.wp.rawMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 250) { load.wp.rawMotionValue = v; return true } else { return 'Raw Motion value can only go up to about 2.5~.' } },
+      'emv': (load, v) => { if (v <= 0.99) { load.wp.eleMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 250) { load.wp.eleMotionValue = v; return true } else { return 'Ele Motion value can only go up to about 2.55~.' } },
       'gdm': (load, v) => { if (v >= 1.5) { return 'Global Def Mod value should be less than 1~' } else { load.m.globalDefMod = v; return true } }
     }
     this._gameSieve(flag)

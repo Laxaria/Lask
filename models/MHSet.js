@@ -85,7 +85,7 @@ class MHSet {
       default:
         let counter = 0
         for (let e of _sets.entries()) {
-          _assums.push(`(${counter + 1}) ${e[0]}`)
+          _assums.push(`[${counter + 1}] ${e[0]}`)
           counter += 1
         }
         break
@@ -169,13 +169,14 @@ class MHSet {
   }
 
   get weaponRawMV () {
-    switch (this.weapon.rawMotionValue) {
-      case null:
-        this._assumptions.push('Weapon raw motion value was 100.')
-        return 100
-      default:
-        return this.weapon.rawMotionValue
-    }
+    return this.weapon.rawMotionValue
+    // switch (this.weapon.rawMotionValue) {
+    //   case null:
+    //     this._assumptions.push('Weapon raw motion value was 100.')
+    //     return 100
+    //   default:
+    //     return this.weapon.rawMotionValue
+    // }
   }
 
   get weaponEleMV () {
@@ -285,7 +286,7 @@ class MHSet {
       default:
         break
     }
-    if (this.weapon.nullRaw && this.weapon.rawMV === null) {
+    if (this.weapon.nullRaw === true && this.weapon.rawMotionValue === null) {
       this._assumptions.push('No raw damage dealt for pure Bowgun elemental damage calculations. Indicate a raw mv to include raw damage.')
     }
     return parseFloat(wpElement)

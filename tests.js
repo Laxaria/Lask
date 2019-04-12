@@ -49,7 +49,7 @@ let TESTS = {
     'string': '100 raw, we, cb, 50 aff, 100 hz',
     'value': 140
   },
-  '12': {
+  '12.5': {
     'string': '100 ele, 100 ehz, 100 raw, 100 hz',
     'value': 200
   },
@@ -84,6 +84,14 @@ let TESTS = {
   '20': {
     'string': 'lbg: 280 raw, eatk2, 45 hz, we, cb, elecrit, 0.21 mv, 0.45 ehz,',
     'value': 41
+  },
+  '21': {
+    'string': 'mhworld cb: 220 raw, 45 hz, we3, cb2, 0.21 mv, heroics2',
+    'value': 26
+  },
+  '22': {
+    'string': 'mhgu lbg: 100 raw, eatk+2, elemental, 45 emv, 21 ehz, aul',
+    'value': 13
   }
 }
 

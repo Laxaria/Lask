@@ -59,6 +59,7 @@ function submitData () {
   let dataPromise = new Promise((resolve, reject) => {
     let dmg = new Lask()
     dmg.parseString(elements['CLI'].value)
+    console.log(dmg.mhSet.data)
     resolve(dmg.effectiveDmgCalc(true))
   })
   dataPromise.then((value) => {
