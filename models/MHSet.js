@@ -1,12 +1,24 @@
+const Weapon = require('./weapon')
+const Skills = require('./skills')
+const Monster = require('./monster')
 
 class MHSet {
-  constructor (game, weapon, skills, monster) {
-    this.game = game
-    this.weapon = weapon
-    this.skills = skills
-    this.monster = monster
+  constructor () {
+    this.weapon = new Weapon()
+    this.skills = new Skills()
+    this.monster = new Monster()
+    this._game = null
+
     this._assumptions = []
     this.errors = null
+  }
+
+  set game (value) {
+    this._game = value
+  }
+
+  get game () {
+    return this._game
   }
 
   _sharps (game, type, color) {

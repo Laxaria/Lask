@@ -63,7 +63,7 @@ let TESTS = {
   },
   '15': {
     'string': 'mhgu db: 40 thun, eatk2, white sharp, 100 aff, critele, elemental, 1.3x ele',
-    'value': 104
+    'value': 106
   },
   '16': {
     'string': 'gs: critdraw, 320 raw, purple sharp, 0.5 hz',

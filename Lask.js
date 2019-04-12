@@ -1,18 +1,12 @@
-const Weapon = require('./models/weapon')
 const CLIParser = require('./models/parser')
-const Skills = require('./models/skills')
-const Monster = require('./models/monster')
 const DamageCalculator = require('./models/DamageCalculator')
 const MHSet = require('./models/MHSet')
 
 class Lask {
   constructor () {
-    this.weapon = new Weapon()
-    this.skills = new Skills()
-    this.monster = new Monster()
     this.parser = new CLIParser()
+    this.mhSet = new MHSet()
     this.game = null
-    this.mhSet = null
     this._outputGame = null
   }
 
@@ -27,10 +21,7 @@ class Lask {
       this._outputGame = 'Game not indicated. Assumed MHGU.'
       this.game = 'mhgu'
     }
-  }
-
-  _createMHSet (game, weapon, skills, monster) {
-    this.mhSet = new MHSet(game, weapon, skills, monster)
+    this.mhSet.game = this.game
   }
 
   parseString (cliString) {
@@ -39,7 +30,6 @@ class Lask {
     if (_string.slice(-1) === ',') {
       _string = _string.slice(0, _string.length - 1)
     }
-    this._createMHSet(this.game, this.weapon, this.skills, this.monster)
     this.parser.parse(_string, this.mhSet.data)
   }
 

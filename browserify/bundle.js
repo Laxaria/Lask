@@ -1,19 +1,13 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const Weapon = require('./models/weapon')
 const CLIParser = require('./models/parser')
-const Skills = require('./models/skills')
-const Monster = require('./models/monster')
 const DamageCalculator = require('./models/DamageCalculator')
 const MHSet = require('./models/MHSet')
 
 class Lask {
   constructor () {
-    this.weapon = new Weapon()
-    this.skills = new Skills()
-    this.monster = new Monster()
     this.parser = new CLIParser()
+    this.mhSet = new MHSet()
     this.game = null
-    this.mhSet = null
     this._outputGame = null
   }
 
@@ -28,10 +22,7 @@ class Lask {
       this._outputGame = 'Game not indicated. Assumed MHGU.'
       this.game = 'mhgu'
     }
-  }
-
-  _createMHSet (game, weapon, skills, monster) {
-    this.mhSet = new MHSet(game, weapon, skills, monster)
+    this.mhSet.game = this.game
   }
 
   parseString (cliString) {
@@ -40,7 +31,6 @@ class Lask {
     if (_string.slice(-1) === ',') {
       _string = _string.slice(0, _string.length - 1)
     }
-    this._createMHSet(this.game, this.weapon, this.skills, this.monster)
     this.parser.parse(_string, this.mhSet.data)
   }
 
@@ -71,7 +61,7 @@ class Lask {
 
 module.exports = Lask
 
-},{"./models/DamageCalculator":3,"./models/MHSet":4,"./models/monster":5,"./models/parser":6,"./models/skills":7,"./models/weapon":8}],2:[function(require,module,exports){
+},{"./models/DamageCalculator":3,"./models/MHSet":4,"./models/parser":6}],2:[function(require,module,exports){
 // Generated automatically by nearley, version 2.16.0
 // http://github.com/Hardmath123/nearley
 (function () {
@@ -276,15 +266,27 @@ class DamageCalculator {
 module.exports = DamageCalculator
 
 },{}],4:[function(require,module,exports){
+const Weapon = require('./weapon')
+const Skills = require('./skills')
+const Monster = require('./monster')
 
 class MHSet {
-  constructor (game, weapon, skills, monster) {
-    this.game = game
-    this.weapon = weapon
-    this.skills = skills
-    this.monster = monster
+  constructor () {
+    this.weapon = new Weapon()
+    this.skills = new Skills()
+    this.monster = new Monster()
+    this._game = null
+
     this._assumptions = []
     this.errors = null
+  }
+
+  set game (value) {
+    this._game = value
+  }
+
+  get game () {
+    return this._game
   }
 
   _sharps (game, type, color) {
@@ -665,7 +667,7 @@ class MHSet {
 
 module.exports = MHSet
 
-},{}],5:[function(require,module,exports){
+},{"./monster":5,"./skills":7,"./weapon":8}],5:[function(require,module,exports){
 class Monster {
   constructor () {
     this.rawHitzone = null
@@ -679,6 +681,7 @@ module.exports = Monster
 },{}],6:[function(require,module,exports){
 const nearley = require('nearley')
 const grammar = require('../grammar/grammar')
+const MHSieve = require('../utils/MHSieve')
 
 const GLOBAL_DEBUG = false
 
@@ -776,11 +779,9 @@ class CLIParser {
     }
 
     if (this.game === 'mhgu') {
-      const MHGUSieve = require('../utils/mhguUtils')
-      this.Sieve = new MHGUSieve()
+      this.Sieve = new MHSieve('mhgu')
     } else if (this.game === 'mhworld') {
-      const MHWorldSieve = require('../utils/mhworldUtils')
-      this.Sieve = new MHWorldSieve()
+      this.Sieve = new MHSieve('mhworld')
     }
 
     weapon.type = data['weapon']
@@ -817,7 +818,7 @@ class CLIParser {
 
 module.exports = CLIParser
 
-},{"../grammar/grammar":2,"../utils/mhguUtils":12,"../utils/mhworldUtils":13,"nearley":10}],7:[function(require,module,exports){
+},{"../grammar/grammar":2,"../utils/MHSieve":13,"nearley":10}],7:[function(require,module,exports){
 class Skills {
   constructor () {
     this.addRaw = 0
@@ -1794,7 +1795,7 @@ function submitData () {
 };
 
 },{"./Lask":1}],12:[function(require,module,exports){
-const switchCase = {
+const MHGUSieve = {
   'aus': (sk) => { sk.addRaw += 10; return true },
   'aum': (sk) => { sk.addRaw += 15; return true },
   'aul': (sk) => { sk.addRaw += 20; return true },
@@ -1809,25 +1810,8 @@ const switchCase = {
   'critdraw': (sk) => { sk.addAff += 100; return true },
   'raw': (load, v) => { if (load.wp.raw === 0) { load.wp.raw = v; return true } else { return 'Weapon raw assigned more than once' } },
   'elemental': (sk) => { sk.elemental = true; return true },
-  'aff': (load, v) => { if (load.wp.affinity === 0) { load.wp.affinity = v; return true } else { return 'Weapon affinity assigned more than once' } },
-  'ele': (load, v) => { if (load.wp.element === 0) { load.wp.element = v; return true } else { return 'Weapon element assigned more than once' } },
-  '+raw': (load, v) => { load.sk.addRaw += v; return true },
-  '-raw': (load, v) => { load.sk.addRaw -= v; return true },
-  'xraw': (load, v) => { load.sk.rawMult.push(v); return true },
-  '+aff': (load, v) => { load.sk.addAff += v; return true },
-  '-aff': (load, v) => { load.sk.addAff -= v; return true },
-  '+ele': (load, v) => { return 'Adding to element is not supported' },
-  '-ele': (load, v) => { return 'Subtracting from element is not supported' },
-  'xele': (load, v) => { load.sk.eleMult.push(v); return true },
   'eatk': (load, v) => { if (v === 1 || v === 2) { load.sk.eleAttack = v; return true } else { return '[Element] Attack can only go to 2' } },
-  'xaff': () => { return 'Multipliers to affinity are not allowed' },
-  'hits': (load, v) => { load.wp.hits = v; return true },
-  'hz': (load, v) => { if (v >= 0 && v <= 2) { load.m.rawHitzone = v * 100 } else { load.m.rawHitzone = v }; return true },
-  'ehz': (load, v) => { if (v >= 0 && v <= 2) { load.m.eleHitzone = v * 100 } else { load.m.eleHitzone = v }; return true },
   'ce': (load, v) => { if (v >= 1 && v <= 3) { load.sk.addAff += v * 10; return true } else { return 'MHGU Crit Eye ranges only from 1 - 3' } },
-  'mv': (load, v) => { if (v <= 0.99) { load.wp.rawMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 3.0) { load.wp.rawMotionValue = v; return true } else { return 'Raw Motion value can only go up to about 5~.' } },
-  'emv': (load, v) => { if (v <= 0.99) { load.wp.eleMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 3.0) { load.wp.eleMotionValue = v; return true } else { return 'Ele Motion value can only go up to about 5~.' } },
-  'gdm': (load, v) => { if (v >= 1.5) { return 'Global Def Mod value should be less than 1~' } else { load.m.globalDefMod = v; return true } },
   'ch': (load, v) => {
     switch (v) {
       case 1:
@@ -1855,12 +1839,59 @@ const switchCase = {
   'elements': ['fire', 'water', 'ice', 'thunder', 'dra', 'thun']
 }
 
-class MHGUSieve {
-  wepSieve (weapon) {
-    if (switchCase['weapons'].includes(weapon.type)) {
-      switchCase[weapon.type](weapon)
+module.exports = MHGUSieve
+
+},{}],13:[function(require,module,exports){
+class MHSieve {
+  constructor (flag = 'mhgu') {
+    this.sieveTable = {
+      'raw': (load, v) => { if (load.wp.raw === 0) { load.wp.raw = v; return true } else { return 'Weapon raw assigned more than once' } },
+      'aff': (load, v) => { if (load.wp.affinity === 0) { load.wp.affinity = v; return true } else { return 'Weapon affinity assigned more than once' } },
+      'ele': (load, v) => { if (load.wp.element === 0) { load.wp.element = v; return true } else { return 'Weapon element assigned more than once' } },
+      '+raw': (load, v) => { load.sk.addRaw += v; return true },
+      '-raw': (load, v) => { load.sk.addRaw -= v; return true },
+      'xraw': (load, v) => { load.sk.rawMult.push(v); return true },
+      '+aff': (load, v) => { load.sk.addAff += v; return true },
+      '-aff': (load, v) => { load.sk.addAff -= v; return true },
+      '+ele': (_load, _v) => { return 'Adding to element is not supported' },
+      '-ele': (_load, _v) => { return 'Subtracting from element is not supported' },
+      'xele': (load, v) => { load.sk.eleMult.push(v); return true },
+      'xaff': () => { return 'Multipliers to affinity are not allowed' },
+      'hits': (load, v) => { load.wp.hits = v; return true },
+      'hz': (load, v) => { if (v >= 0 && v <= 2) { load.m.rawHitzone = v * 100 } else { load.m.rawHitzone = v }; return true },
+      'ehz': (load, v) => { if (v >= 0 && v <= 2) { load.m.eleHitzone = v * 100 } else { load.m.eleHitzone = v }; return true },
+      'mv': (load, v) => { if (v <= 0.99) { load.wp.rawMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 3.0) { load.wp.rawMotionValue = v; return true } else { return 'Raw Motion value can only go up to about 5~.' } },
+      'emv': (load, v) => { if (v <= 0.99) { load.wp.eleMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 3.0) { load.wp.eleMotionValue = v; return true } else { return 'Ele Motion value can only go up to about 5~.' } },
+      'gdm': (load, v) => { if (v >= 1.5) { return 'Global Def Mod value should be less than 1~' } else { load.m.globalDefMod = v; return true } }
+    }
+    this._gameSieve(flag)
+  }
+
+  _gameSieve (flag) {
+    switch (flag) {
+      case 'mhworld':
+        const MHWorldSieve = require('./MHWorldSieve')
+        this.sieveTable = { ...this.sieveTable, ...MHWorldSieve }
+        break
+      case 'mhgu':
+      // fall through intended making mhgu default
+      default:
+        const MHGUSieve = require('./MHGUSieve')
+        this.sieveTable = { ...this.sieveTable, ...MHGUSieve }
+        break
     }
   }
+
+  _log () {
+    console.log(this.sieveTable)
+  }
+
+  wepSieve (weapon) {
+    if (this.sieveTable['weapons'].includes(weapon.type)) {
+      this.sieveTable[weapon.type](weapon)
+    }
+  }
+
   sieve (parsedData = null, weapon = null, skills = null, monster = null) {
     let load = {
       wp: weapon,
@@ -1868,14 +1899,14 @@ class MHGUSieve {
       m: monster
     }
 
-    if (switchCase['statics'].includes(parsedData.keyword)) {
-      return switchCase[parsedData.keyword](load.sk)
+    if (this.sieveTable['statics'].includes(parsedData.keyword)) {
+      return this.sieveTable[parsedData.keyword](load.sk)
     } else if (['sharp'].includes(parsedData.keyword)) {
-      return switchCase[parsedData.keyword](load, parsedData.value)
-    } else if (switchCase['elements'].includes(parsedData.keyword)) {
-      return switchCase['ele'](load, parsedData.value)
-    } else if (switchCase['weaponstats'].includes(parsedData.keyword)) {
-      return switchCase[parsedData.keyword](load.wp)
+      return this.sieveTable[parsedData.keyword](load, parsedData.value)
+    } else if (this.sieveTable['elements'].includes(parsedData.keyword)) {
+      return this.sieveTable['ele'](load, parsedData.value)
+    } else if (this.sieveTable['weaponstats'].includes(parsedData.keyword)) {
+      return this.sieveTable[parsedData.keyword](load.wp)
     }
 
     if (parsedData.value !== null) {
@@ -1891,32 +1922,21 @@ class MHGUSieve {
     if (parsedData.operand === null) { parsedData.operand = '' }
 
     try {
-      return switchCase[parsedData.operand + parsedData.keyword](load, parsedData.value)
+      return this.sieveTable[parsedData.operand + parsedData.keyword](load, parsedData.value)
     } catch (err) {
       return `Unable to parse value associated with ${parsedData.keyword}`
     }
   }
 }
 
-module.exports = MHGUSieve
+module.exports = MHSieve
 
-},{}],13:[function(require,module,exports){
-const worldSwitchCase = {
+},{"./MHGUSieve":12,"./MHWorldSieve":14}],14:[function(require,module,exports){
+const MHWorldSieve = {
   'neb': (sk) => { sk.rawMult.push(1.1); return true },
   'nshots': (sk) => { sk.rawMult.push(1.1); return true },
   'pshots': (sk) => { sk.rawMult.push(1.1); return true },
   'sprdshots': (sk) => { sk.rawMult.push(1.1); return true },
-  'raw': (load, v) => { if (load.wp.raw === 0) { load.wp.raw = v; return true } else { return 'Weapon raw assigned more than once' } },
-  'aff': (load, v) => { if (load.wp.affinity === 0) { load.wp.affinity = v; return true } else { return 'Weapon affinity assigned more than once' } },
-  'ele': (load, v) => { if (load.wp.element === 0) { load.wp.element = v; return true } else { return 'Weapon element assigned more than once' } },
-  '+raw': (load, v) => { load.sk.addRaw += v; return true },
-  '-raw': (load, v) => { load.sk.addRaw -= v; return true },
-  'xraw': (load, v) => { load.sk.rawMult.push(v); return true },
-  '+aff': (load, v) => { load.sk.addAff += v; return true },
-  '-aff': (load, v) => { load.sk.addAff -= v; return true },
-  '+ele': (load, v) => { return 'Adding to element is not supported' },
-  '-ele': (load, v) => { return 'Subtracting from element is not supported' },
-  'xele': (load, v) => { load.sk.eleMult.push(v); return true },
   'we': (load, v) => { if (v >= 1 && v <= 3) { load.sk.WE = v; return true } else { return 'Failed to parse Weakness Exploit' } },
   'cb': (load, v) => { if (v >= 1 && v <= 3) { load.sk.CB = v; return true } else { return 'Failed to parse Critical Boost' } },
   'critdraw': (load, v) => {
@@ -1970,10 +1990,6 @@ const worldSwitchCase = {
   'heroics': (load, v) => { if (v >= 1 && v <= 5) { load.sk.rawMult.push(1 + v * 0.05); return true } else { return 'Heroics can only go to 5' } },
   'resentment': (load, v) => { if (v >= 1 && v <= 5) { load.sk.addRaw += v * 5; return true } else { return 'Resentment can only go to 5' } },
   'eatk': (load, v) => { if (v >= 1 && v <= 5) { load.sk.eleAttack = v; return true } else { return '[Element] Attack can only go to 5' } },
-  'xaff': () => { return 'Multipliers to affinity are not allowed' },
-  'hits': (load, v) => { load.wp.hits = v; return true },
-  'hz': (load, v) => { if (v >= 0 && v <= 2) { load.m.rawHitzone = v * 100 } else { load.m.rawHitzone = v }; return true },
-  'ehz': (load, v) => { if (v >= 0 && v <= 2) { load.m.eleHitzone = v * 100 } else { load.m.eleHitzone = v }; return true },
   'ce': (load, v) => {
     switch (v) {
       case 1:
@@ -1999,9 +2015,6 @@ const worldSwitchCase = {
         return 'Failed to parse crit eye'
     } return true
   },
-  'mv': (load, v) => { if (v <= 0.99) { load.wp.rawMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 3.0) { load.wp.rawMotionValue = v; return true } else { return 'Raw Motion value can only go up to about 5~.' } },
-  'emv': (load, v) => { if (v <= 0.99) { load.wp.eleMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 3.0) { load.wp.eleMotionValue = v; return true } else { return 'Ele Motion value can only go up to about 5~.' } },
-  'gdm': (load, v) => { if (v >= 1.5) { return 'Global Def Mod value should be less than 1~' } else { load.m.globalDefMod = v; return true } },
   'agitator': (load, v) => {
     switch (v) {
       case 1:
@@ -2022,49 +2035,6 @@ const worldSwitchCase = {
   'weaponstats': ['elecrit'],
   'weapons': [],
   'elements': ['fire', 'water', 'ice', 'thunder', 'dra', 'thun']
-}
-
-class MHWorldSieve {
-  wepSieve (weapon) {
-    if (worldSwitchCase['weapons'].includes(weapon.name)) {
-      worldSwitchCase[weapon.name](weapon)
-    }
-  }
-
-  sieve (parsedData = null, weapon = null, skills = null, monster = null) {
-    let load = {
-      wp: weapon,
-      sk: skills,
-      m: monster
-    }
-
-    if (worldSwitchCase['statics'].includes(parsedData.keyword)) {
-      return worldSwitchCase[parsedData.keyword](load.sk)
-    } else if (['sharp'].includes(parsedData.keyword)) {
-      return worldSwitchCase[parsedData.keyword](load, parsedData.value)
-    } else if (worldSwitchCase['elements'].includes(parsedData.keyword)) {
-      return worldSwitchCase['ele'](load, parsedData.value)
-    } else if (worldSwitchCase['weaponstats'].includes(parsedData.keyword)) {
-      return worldSwitchCase[parsedData.keyword](load.wp)
-    }
-
-    if (parsedData.value !== null) {
-      if (parsedData.value.includes('.')) {
-        parsedData.value = parseFloat(parsedData.value)
-      } else {
-        parsedData.value = parseInt(parsedData.value)
-      }
-    } else {
-      return `Unable to parse value associated with ${parsedData.keyword}`
-    }
-
-    if (parsedData.operand === null) { parsedData.operand = '' }
-    try {
-      return worldSwitchCase[parsedData.operand + parsedData.keyword](load, parsedData.value)
-    } catch (err) {
-      return `Unable to parse value associated with ${parsedData.keyword}`
-    }
-  }
 }
 
 module.exports = MHWorldSieve

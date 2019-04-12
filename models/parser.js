@@ -1,5 +1,6 @@
 const nearley = require('nearley')
 const grammar = require('../grammar/grammar')
+const MHSieve = require('../utils/MHSieve')
 
 const GLOBAL_DEBUG = false
 
@@ -97,11 +98,9 @@ class CLIParser {
     }
 
     if (this.game === 'mhgu') {
-      const MHGUSieve = require('../utils/mhguUtils')
-      this.Sieve = new MHGUSieve()
+      this.Sieve = new MHSieve('mhgu')
     } else if (this.game === 'mhworld') {
-      const MHWorldSieve = require('../utils/mhworldUtils')
-      this.Sieve = new MHWorldSieve()
+      this.Sieve = new MHSieve('mhworld')
     }
 
     weapon.type = data['weapon']
