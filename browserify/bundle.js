@@ -54,7 +54,7 @@ class Lask {
     } else {
       let output = damageCalculator.effectiveDmgCalc(debug)
       if (this.mhSet.errors instanceof Error) { return this.mhSet.errors }
-      // console.log(this.mhSet.assumptions)
+      console.log(this.mhSet.assumptions)
       return output
     }
   }
@@ -71,7 +71,7 @@ function id(x) { return x[0]; }
 const moo = require('moo')
 
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
-const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
+const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh', 'swaxe', 'sa']
 const games = ['mhgu', 'mhworld']
 const keys = ['traw', 'draw', 'dele', 'raw', 'aff', 'ab', 'hz', 'ehz', 'mv', 'emv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp', 'critdraw', 'hits', 'nup']
 const worlds =['heroics', 'resentment', 'agitator', 'neb', 'nshots', 'pshots', 'sprdshots']
@@ -223,12 +223,11 @@ class DamageCalculator {
     let dmgString = `${wpMult} * ${wpSharpMult} * (${wpRaw} + ${wpAddRaw}) * (1 + ${wpTotalAff / 100} * ${skAffMod})${_strWpRawMults} * ${wpMV / 100} * ${mRawHZ / 100}`
 
     if (debug) { console.log(dmgString) }
-    if (wpMV === null) { wpMV = 100 }
     this._rawDmgString = dmgString
 
     let dmg = parseFloat(wpMult * wpSharpMult * wpTotalRaw * (1 + wpTotalAff / 100 * skAffMod) * wpRawMults * wpMV / 100 * mRawHZ / 100)
 
-    if (this.mhSet.weaponNullRaw === true && this.mhSet.weaponRawMV === null && this.mhSet.weaponEleMV !== 0) { return 0 } else { return dmg }
+    if (this.mhSet.dontCalcRawDamage === true) { return 0 } else { return dmg }
   }
 
   _EleCalculations (debug = false) {
@@ -280,6 +279,7 @@ class MHSet {
 
     this._assumptions = []
     this.errors = null
+    this._weaponNullRaw = false
   }
 
   set game (value) {
@@ -325,16 +325,29 @@ class MHSet {
         }
     }
   }
+
   get data () {
     return [this.game, this.weapon, this.skills, this.monster]
   }
 
-  get weaponType () {
-    return this.weapon.type
+  set weaponNullRaw (value) {
+    this._weaponNullRaw = value
   }
 
   get weaponNullRaw () {
-    return this.weapon.nullRaw
+    return this._weaponNullRaw
+  }
+
+  get dontCalcRawDamage () {
+    if (this.weaponNullRaw === true && this.weapon.rawMotionValue === null && (this.weapon.type === 'hbg' || this.weapon.type === 'lbg')) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  get weaponType () {
+    return this.weapon.type
   }
 
   get stringWeaponRawMult () {
@@ -369,7 +382,7 @@ class MHSet {
   get monsterRawHitzone () {
     switch (this.monster.rawHitzone) {
       case null:
-        this._assumptions.push('Monster had a 100 element hitzone.')
+        this._assumptions.push('Monster had a 100 raw hitzone.')
         return 100
       default:
         return this.monster.rawHitzone
@@ -438,14 +451,13 @@ class MHSet {
   }
 
   get weaponRawMV () {
-    return this.weapon.rawMotionValue
-    // switch (this.weapon.rawMotionValue) {
-    //   case null:
-    //     this._assumptions.push('Weapon raw motion value was 100.')
-    //     return 100
-    //   default:
-    //     return this.weapon.rawMotionValue
-    // }
+    switch (this.weapon.rawMotionValue) {
+      case null:
+        this._assumptions.push('Weapon raw motion value was 100.')
+        return 100
+      default:
+        return this.weapon.rawMotionValue
+    }
   }
 
   get weaponEleMV () {
@@ -503,7 +515,7 @@ class MHSet {
         if (this.game === 'mhgu') { this.skills.eleMult.push(0.95) }
         if (this.weaponEleMV !== null) {
           wpElement = this.weaponTotalRaw
-          this.weapon.nullRaw = true
+          this.weaponNullRaw = true
         } else {
           wpElement = 0
         }
@@ -555,7 +567,7 @@ class MHSet {
       default:
         break
     }
-    if (this.weapon.nullRaw === true && this.weapon.rawMotionValue === null) {
+    if (this.weaponNullRaw === true && this.weapon.rawMotionValue === null) {
       this._assumptions.push('No raw damage dealt for pure Bowgun elemental damage calculations. Indicate a raw mv to include raw damage.')
     }
     return parseFloat(wpElement)
@@ -1864,7 +1876,7 @@ class MHSieve {
       'hz': (load, v) => { if (v >= 0 && v <= 2) { load.m.rawHitzone = v * 100 } else { load.m.rawHitzone = v }; return true },
       'ehz': (load, v) => { if (v >= 0 && v <= 2) { load.m.eleHitzone = v * 100 } else { load.m.eleHitzone = v }; return true },
       'mv': (load, v) => { if (v <= 0.99) { load.wp.rawMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 250) { load.wp.rawMotionValue = v; return true } else { return 'Raw Motion value can only go up to about 2.5~.' } },
-      'emv': (load, v) => { if (v <= 0.99) { load.wp.eleMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 250) { load.wp.eleMotionValue = v; return true } else { return 'Ele Motion value can only go up to about 2.55~.' } },
+      'emv': (load, v) => { if (v <= 0.99) { load.wp.eleMotionValue = v * 100; return true } else if (v >= 1.0 && v <= 250) { load.wp.eleMotionValue = v; return true } else { return 'Ele Motion value can only go up to about 2.5~.' } },
       'gdm': (load, v) => { if (v >= 1.5) { return 'Global Def Mod value should be less than 1~' } else { load.m.globalDefMod = v; return true } }
     }
     this._gameSieve(flag)
@@ -2033,11 +2045,29 @@ const MHWorldSieve = {
     }
   },
   'sharp': (load, v) => { load.wp.sharp = v; return true },
-  'elecrit' (wp) { wp.eleCritMult = true; return true },
+  'elecrit': (wp) => { wp.eleCritMult = true; return true },
+  'draw': (load, v) => { try { load.wp.raw = v / MHWorldDisplayRaw[load.wp.type]; return true } catch (err) { return 'Failed to parse weapon name' } },
   'statics': ['rup', 'sprdup', 'pup', 'sprdup', 'elemental', 'neb', 'nshots', 'pshots', 'sprdshots'],
   'weaponstats': ['elecrit'],
   'weapons': [],
   'elements': ['fire', 'water', 'ice', 'thunder', 'dra', 'thun']
+}
+
+const MHWorldDisplayRaw = {
+  'hammer': 5.2,
+  'hh': 4.2,
+  'swaxe': 3.5,
+  'gs': 4.8,
+  'cb': 3.6,
+  'ls': 3.3,
+  'ig': 3.1,
+  'lance': 2.3,
+  'gl': 2.3,
+  'hbg': 1.5,
+  'sns': 1.4,
+  'db': 1.4,
+  'lbg': 1.3,
+  'bow': 1.2
 }
 
 module.exports = MHWorldSieve

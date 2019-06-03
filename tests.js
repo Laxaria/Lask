@@ -92,6 +92,18 @@ let TESTS = {
   '22': {
     'string': 'mhgu lbg: 100 raw, eatk+2, elemental, 45 emv, 21 ehz, aul',
     'value': 13
+  },
+  '23': {
+    'string': 'mhworld lbg: 130 draw, +10 raw',
+    'value': 110
+  },
+  '24': {
+    'string': 'mhworld lbg: 100 raw, +10 raw',
+    'value': 110
+  },
+  '25': {
+    'string': 'mhworld asr: 100 draw, +10 raw',
+    'value': 110
   }
 }
 
@@ -101,9 +113,9 @@ Object.entries(TESTS).forEach(([test, data]) => {
   lask.parseString(data['string'])
   let output = lask.effectiveDmgCalc()
   if (lask.error() && (data['value'] === 'fail')) {
-    console.log('Success')
+    console.log(`${test} Success`)
   } else if (Math.abs(output.totalDamage - data['value']) <= 1) {
-    console.log('Success')
+    console.log(`${test} Success`)
   } else {
     console.log(JSON.stringify(output, null, 2))
     console.log(lask.errorMessage())

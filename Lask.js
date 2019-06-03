@@ -53,7 +53,7 @@ class Lask {
     } else {
       let output = damageCalculator.effectiveDmgCalc(debug)
       if (this.mhSet.errors instanceof Error) { return this.mhSet.errors }
-      // console.log(this.mhSet.assumptions)
+      console.log(this.mhSet.assumptions)
       return output
     }
   }

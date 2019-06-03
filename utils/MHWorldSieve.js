@@ -96,11 +96,29 @@ const MHWorldSieve = {
     }
   },
   'sharp': (load, v) => { load.wp.sharp = v; return true },
-  'elecrit' (wp) { wp.eleCritMult = true; return true },
+  'elecrit': (wp) => { wp.eleCritMult = true; return true },
+  'draw': (load, v) => { try { load.wp.raw = v / MHWorldDisplayRaw[load.wp.type]; return true } catch (err) { return 'Failed to parse weapon name' } },
   'statics': ['rup', 'sprdup', 'pup', 'sprdup', 'elemental', 'neb', 'nshots', 'pshots', 'sprdshots'],
   'weaponstats': ['elecrit'],
   'weapons': [],
   'elements': ['fire', 'water', 'ice', 'thunder', 'dra', 'thun']
+}
+
+const MHWorldDisplayRaw = {
+  'hammer': 5.2,
+  'hh': 4.2,
+  'swaxe': 3.5,
+  'gs': 4.8,
+  'cb': 3.6,
+  'ls': 3.3,
+  'ig': 3.1,
+  'lance': 2.3,
+  'gl': 2.3,
+  'hbg': 1.5,
+  'sns': 1.4,
+  'db': 1.4,
+  'lbg': 1.3,
+  'bow': 1.2
 }
 
 module.exports = MHWorldSieve

@@ -11,6 +11,7 @@ class MHSet {
 
     this._assumptions = []
     this.errors = null
+    this._weaponNullRaw = false
   }
 
   set game (value) {
@@ -56,16 +57,29 @@ class MHSet {
         }
     }
   }
+
   get data () {
     return [this.game, this.weapon, this.skills, this.monster]
   }
 
-  get weaponType () {
-    return this.weapon.type
+  set weaponNullRaw (value) {
+    this._weaponNullRaw = value
   }
 
   get weaponNullRaw () {
-    return this.weapon.nullRaw
+    return this._weaponNullRaw
+  }
+
+  get dontCalcRawDamage () {
+    if (this.weaponNullRaw === true && this.weapon.rawMotionValue === null && (this.weapon.type === 'hbg' || this.weapon.type === 'lbg')) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  get weaponType () {
+    return this.weapon.type
   }
 
   get stringWeaponRawMult () {
@@ -100,7 +114,7 @@ class MHSet {
   get monsterRawHitzone () {
     switch (this.monster.rawHitzone) {
       case null:
-        this._assumptions.push('Monster had a 100 element hitzone.')
+        this._assumptions.push('Monster had a 100 raw hitzone.')
         return 100
       default:
         return this.monster.rawHitzone
@@ -169,14 +183,13 @@ class MHSet {
   }
 
   get weaponRawMV () {
-    return this.weapon.rawMotionValue
-    // switch (this.weapon.rawMotionValue) {
-    //   case null:
-    //     this._assumptions.push('Weapon raw motion value was 100.')
-    //     return 100
-    //   default:
-    //     return this.weapon.rawMotionValue
-    // }
+    switch (this.weapon.rawMotionValue) {
+      case null:
+        this._assumptions.push('Weapon raw motion value was 100.')
+        return 100
+      default:
+        return this.weapon.rawMotionValue
+    }
   }
 
   get weaponEleMV () {
@@ -234,7 +247,7 @@ class MHSet {
         if (this.game === 'mhgu') { this.skills.eleMult.push(0.95) }
         if (this.weaponEleMV !== null) {
           wpElement = this.weaponTotalRaw
-          this.weapon.nullRaw = true
+          this.weaponNullRaw = true
         } else {
           wpElement = 0
         }
@@ -286,7 +299,7 @@ class MHSet {
       default:
         break
     }
-    if (this.weapon.nullRaw === true && this.weapon.rawMotionValue === null) {
+    if (this.weaponNullRaw === true && this.weapon.rawMotionValue === null) {
       this._assumptions.push('No raw damage dealt for pure Bowgun elemental damage calculations. Indicate a raw mv to include raw damage.')
     }
     return parseFloat(wpElement)

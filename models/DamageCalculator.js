@@ -34,12 +34,11 @@ class DamageCalculator {
     let dmgString = `${wpMult} * ${wpSharpMult} * (${wpRaw} + ${wpAddRaw}) * (1 + ${wpTotalAff / 100} * ${skAffMod})${_strWpRawMults} * ${wpMV / 100} * ${mRawHZ / 100}`
 
     if (debug) { console.log(dmgString) }
-    if (wpMV === null) { wpMV = 100 }
     this._rawDmgString = dmgString
 
     let dmg = parseFloat(wpMult * wpSharpMult * wpTotalRaw * (1 + wpTotalAff / 100 * skAffMod) * wpRawMults * wpMV / 100 * mRawHZ / 100)
 
-    if (this.mhSet.weaponNullRaw === true && this.mhSet.weaponRawMV === null && this.mhSet.weaponEleMV !== 0) { return 0 } else { return dmg }
+    if (this.mhSet.dontCalcRawDamage === true) { return 0 } else { return dmg }
   }
 
   _EleCalculations (debug = false) {

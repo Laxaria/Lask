@@ -6,7 +6,7 @@ function id(x) { return x[0]; }
 const moo = require('moo')
 
 const sharps = ['yellow', 'red', 'orange', 'blue', 'white', 'purple', 'green']
-const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh']
+const weps = ['lbg', 'hbg', 'bow', 'sns', 'gs', 'ls', 'db', 'ig', 'gl', 'lance', 'hammer', 'hh', 'swaxe', 'sa']
 const games = ['mhgu', 'mhworld']
 const keys = ['traw', 'draw', 'dele', 'raw', 'aff', 'ab', 'hz', 'ehz', 'mv', 'emv', 'we', 'cb', 'au', 'ch', 'ce', 'sharp', 'gdm', 'tsu', 'rup', 'pup', 'sprdup', 'pp', 'critdraw', 'hits', 'nup']
 const worlds =['heroics', 'resentment', 'agitator', 'neb', 'nshots', 'pshots', 'sprdshots']
