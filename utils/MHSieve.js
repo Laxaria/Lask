@@ -42,6 +42,24 @@ class MHSieve {
     console.log(this.sieveTable)
   }
 
+  _parseToNumber (parsedData) {
+    let result
+    if (!isFinite(parsedData.value)) {
+      result = parsedData.value
+    } else {
+      if (parsedData.value !== null) {
+        if (parsedData.value.includes('.')) {
+          result = parseFloat(parsedData.value)
+        } else {
+          result = parseInt(parsedData.value)
+        }
+      } else {
+        result = `Unable to parse value associated with ${parsedData.keyword}`
+      }
+    }
+    return result
+  }
+
   wepSieve (weapon) {
     if (this.sieveTable['weapons'].includes(weapon.type)) {
       this.sieveTable[weapon.type](weapon)
@@ -55,6 +73,8 @@ class MHSieve {
       m: monster
     }
 
+    parsedData.value = this._parseToNumber(parsedData)
+
     if (this.sieveTable['statics'].includes(parsedData.keyword)) {
       return this.sieveTable[parsedData.keyword](load.sk)
     } else if (['sharp'].includes(parsedData.keyword)) {
@@ -63,16 +83,6 @@ class MHSieve {
       return this.sieveTable['ele'](load, parsedData.value)
     } else if (this.sieveTable['weaponstats'].includes(parsedData.keyword)) {
       return this.sieveTable[parsedData.keyword](load.wp)
-    }
-
-    if (parsedData.value !== null) {
-      if (parsedData.value.includes('.')) {
-        parsedData.value = parseFloat(parsedData.value)
-      } else {
-        parsedData.value = parseInt(parsedData.value)
-      }
-    } else {
-      return `Unable to parse value associated with ${parsedData.keyword}`
     }
 
     if (parsedData.operand === null) { parsedData.operand = '' }

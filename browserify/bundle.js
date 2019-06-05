@@ -54,7 +54,7 @@ class Lask {
     } else {
       let output = damageCalculator.effectiveDmgCalc(debug)
       if (this.mhSet.errors instanceof Error) { return this.mhSet.errors }
-      console.log(this.mhSet.assumptions)
+      // console.log(this.mhSet.assumptions)
       return output
     }
   }
@@ -92,6 +92,7 @@ const lexer = moo.compile({
           sharp: sharps,
           element: elements,
           world: worlds,
+          otherWords: /[a-z]+/,
          }},
   decimal: /\d{0,3}\.\d{1,3}/, 
   number: /[0-9]+/,
@@ -715,7 +716,8 @@ class CLIParser {
     this.error = null
     this.Sieve = null
     this.game = null
-  };
+    this.error = null
+  }
 
   _parseLoop (arr, weapon, skills, monster) {
     let i = 0
@@ -785,7 +787,6 @@ class CLIParser {
 
     switch (results) {
       case null:
-        this.parseError('Failed to parse')
         return null
       default:
         data = results[0]
@@ -814,13 +815,14 @@ class CLIParser {
       if (parser.results.length === 1) {
         return parser.results
       } else if (parser.results.length === 0) {
+        this.parseError('Failed to parse')
         return null
       } else {
         this.parseError('Failed to parse due to ambiguity in submission string. Report string to https://github.com/Laxaria/Lask')
         return null
       }
     } catch (err) {
-      this.parseError('Failed to parse')
+      this.parseError(`Failed to parse. Error was somewhere around '${cliString.slice(err.token.offset - 5, err.token.offset + 5)}'`)
       return null
     }
   }
@@ -1847,7 +1849,8 @@ const MHGUSieve = {
   'sns': (wp) => { wp.rawMult = 1.06; return true },
   'gs': (wp) => { wp.rawMult = 1.05; return true },
   'ls': (wp) => { wp.rawMult = 1.05; return true },
-  'elecrit' (wp) { wp.eleCritMult = true; return true },
+  'elecrit': (wp) => { wp.eleCritMult = true; return true },
+  'draw': () => { return 'Display raw is only supported for MHWorld' },
   'statics': ['aus', 'aum', 'aul', 'we', 'cb', 'rup', 'nup', 'sprdup', 'pup', 'tsu', 'sprdup', 'pp', 'elemental', 'critdraw'],
   'weaponstats': ['elecrit'],
   'weapons': ['lbg', 'hbg', 'sns', 'gs', 'ls'],
@@ -1901,6 +1904,24 @@ class MHSieve {
     console.log(this.sieveTable)
   }
 
+  _parseToNumber (parsedData) {
+    let result
+    if (!isFinite(parsedData.value)) {
+      result = parsedData.value
+    } else {
+      if (parsedData.value !== null) {
+        if (parsedData.value.includes('.')) {
+          result = parseFloat(parsedData.value)
+        } else {
+          result = parseInt(parsedData.value)
+        }
+      } else {
+        result = `Unable to parse value associated with ${parsedData.keyword}`
+      }
+    }
+    return result
+  }
+
   wepSieve (weapon) {
     if (this.sieveTable['weapons'].includes(weapon.type)) {
       this.sieveTable[weapon.type](weapon)
@@ -1914,6 +1935,8 @@ class MHSieve {
       m: monster
     }
 
+    parsedData.value = this._parseToNumber(parsedData)
+
     if (this.sieveTable['statics'].includes(parsedData.keyword)) {
       return this.sieveTable[parsedData.keyword](load.sk)
     } else if (['sharp'].includes(parsedData.keyword)) {
@@ -1922,16 +1945,6 @@ class MHSieve {
       return this.sieveTable['ele'](load, parsedData.value)
     } else if (this.sieveTable['weaponstats'].includes(parsedData.keyword)) {
       return this.sieveTable[parsedData.keyword](load.wp)
-    }
-
-    if (parsedData.value !== null) {
-      if (parsedData.value.includes('.')) {
-        parsedData.value = parseFloat(parsedData.value)
-      } else {
-        parsedData.value = parseInt(parsedData.value)
-      }
-    } else {
-      return `Unable to parse value associated with ${parsedData.keyword}`
     }
 
     if (parsedData.operand === null) { parsedData.operand = '' }
@@ -2047,6 +2060,7 @@ const MHWorldSieve = {
   'sharp': (load, v) => { load.wp.sharp = v; return true },
   'elecrit': (wp) => { wp.eleCritMult = true; return true },
   'draw': (load, v) => { try { load.wp.raw = v / MHWorldDisplayRaw[load.wp.type]; return true } catch (err) { return 'Failed to parse weapon name' } },
+  'traw': (load, v) => { if (load.wp.raw === 0) { load.wp.raw = v; return true } else { return 'Weapon raw assigned more than once' } },
   'statics': ['rup', 'sprdup', 'pup', 'sprdup', 'elemental', 'neb', 'nshots', 'pshots', 'sprdshots'],
   'weaponstats': ['elecrit'],
   'weapons': [],

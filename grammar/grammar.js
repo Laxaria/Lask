@@ -27,6 +27,7 @@ const lexer = moo.compile({
           sharp: sharps,
           element: elements,
           world: worlds,
+          otherWords: /[a-z]+/,
          }},
   decimal: /\d{0,3}\.\d{1,3}/, 
   number: /[0-9]+/,

@@ -98,6 +98,7 @@ const MHWorldSieve = {
   'sharp': (load, v) => { load.wp.sharp = v; return true },
   'elecrit': (wp) => { wp.eleCritMult = true; return true },
   'draw': (load, v) => { try { load.wp.raw = v / MHWorldDisplayRaw[load.wp.type]; return true } catch (err) { return 'Failed to parse weapon name' } },
+  'traw': (load, v) => { if (load.wp.raw === 0) { load.wp.raw = v; return true } else { return 'Weapon raw assigned more than once' } },
   'statics': ['rup', 'sprdup', 'pup', 'sprdup', 'elemental', 'neb', 'nshots', 'pshots', 'sprdshots'],
   'weaponstats': ['elecrit'],
   'weapons': [],

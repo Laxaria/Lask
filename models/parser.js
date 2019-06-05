@@ -20,7 +20,8 @@ class CLIParser {
     this.error = null
     this.Sieve = null
     this.game = null
-  };
+    this.error = null
+  }
 
   _parseLoop (arr, weapon, skills, monster) {
     let i = 0
@@ -90,7 +91,6 @@ class CLIParser {
 
     switch (results) {
       case null:
-        this.parseError('Failed to parse')
         return null
       default:
         data = results[0]
@@ -119,13 +119,14 @@ class CLIParser {
       if (parser.results.length === 1) {
         return parser.results
       } else if (parser.results.length === 0) {
+        this.parseError('Failed to parse')
         return null
       } else {
         this.parseError('Failed to parse due to ambiguity in submission string. Report string to https://github.com/Laxaria/Lask')
         return null
       }
     } catch (err) {
-      this.parseError('Failed to parse')
+      this.parseError(`Failed to parse. Error was somewhere around '${cliString.slice(err.token.offset - 5, err.token.offset + 5)}'`)
       return null
     }
   }

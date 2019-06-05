@@ -104,6 +104,10 @@ let TESTS = {
   '25': {
     'string': 'mhworld asr: 100 draw, +10 raw',
     'value': 110
+  },
+  '26': {
+    'string': 'mhgu lbg: 130 raw, +10 raw, firefox ice',
+    'value': 110
   }
 }
 
