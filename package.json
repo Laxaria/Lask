@@ -9,7 +9,8 @@
   "author": "Laxaria",
   "license": "ISC",
   "dependencies": {
-    "nearley": "^2.16.0"
+    "nearley": "^2.16.0",
+    "js-yaml": ">=3.13.1"
   },
   "devDependencies": {
     "standard": "^12.0.1"
