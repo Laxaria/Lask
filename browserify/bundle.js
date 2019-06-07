@@ -767,9 +767,9 @@ class CLIParser {
           structData.operand = null
           /* falls through */
         default:
-          let check = this.Sieve.sieve(structData, weapon, skills, monster)
-          if (check !== true) {
-            this.parseError(check)
+          let sieveSuccess = this.Sieve.sieve(structData, weapon, skills, monster)
+          if (sieveSuccess !== true) {
+            this.parseError(this.Sieve.sieveError)
           }
           break
       }
@@ -1906,18 +1906,17 @@ class MHSieve {
 
   _parseToNumber (parsedData) {
     let result
-    if (!isFinite(parsedData.value)) {
-      result = parsedData.value
-    } else {
-      if (parsedData.value !== null) {
-        if (parsedData.value.includes('.')) {
-          result = parseFloat(parsedData.value)
-        } else {
-          result = parseInt(parsedData.value)
-        }
+    if (parsedData.value != null) {
+      if (parsedData.value.includes('.')) {
+        result = parseFloat(parsedData.value)
       } else {
-        result = `Unable to parse value associated with ${parsedData.keyword}`
+        result = parseInt(parsedData.value)
       }
+    } else {
+      result = parsedData.value
+    }
+    if (isNaN(result)) {
+      result = parsedData.value
     }
     return result
   }
@@ -1929,6 +1928,7 @@ class MHSieve {
   }
 
   sieve (parsedData = null, weapon = null, skills = null, monster = null) {
+    let sieveResult
     let load = {
       wp: weapon,
       sk: skills,
@@ -1938,21 +1938,28 @@ class MHSieve {
     parsedData.value = this._parseToNumber(parsedData)
 
     if (this.sieveTable['statics'].includes(parsedData.keyword)) {
-      return this.sieveTable[parsedData.keyword](load.sk)
+      sieveResult = this.sieveTable[parsedData.keyword](load.sk)
     } else if (['sharp'].includes(parsedData.keyword)) {
-      return this.sieveTable[parsedData.keyword](load, parsedData.value)
+      sieveResult = this.sieveTable[parsedData.keyword](load, parsedData.value)
     } else if (this.sieveTable['elements'].includes(parsedData.keyword)) {
-      return this.sieveTable['ele'](load, parsedData.value)
+      sieveResult = this.sieveTable['ele'](load, parsedData.value)
     } else if (this.sieveTable['weaponstats'].includes(parsedData.keyword)) {
-      return this.sieveTable[parsedData.keyword](load.wp)
+      sieveResult = this.sieveTable[parsedData.keyword](load.wp)
     }
 
     if (parsedData.operand === null) { parsedData.operand = '' }
 
     try {
-      return this.sieveTable[parsedData.operand + parsedData.keyword](load, parsedData.value)
+      sieveResult = this.sieveTable[parsedData.operand + parsedData.keyword](load, parsedData.value)
     } catch (err) {
-      return `Unable to parse value associated with ${parsedData.keyword}`
+      this.sieveError = `Unable to parse value associated with ${parsedData.keyword}`
+    }
+
+    if (sieveResult === true) {
+      return true
+    } else {
+      this.sieveError = sieveResult
+      return this.sieveError
     }
   }
 }

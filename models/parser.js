@@ -71,9 +71,9 @@ class CLIParser {
           structData.operand = null
           /* falls through */
         default:
-          let check = this.Sieve.sieve(structData, weapon, skills, monster)
-          if (check !== true) {
-            this.parseError(check)
+          let sieveSuccess = this.Sieve.sieve(structData, weapon, skills, monster)
+          if (sieveSuccess !== true) {
+            this.parseError(this.Sieve.sieveError)
           }
           break
       }

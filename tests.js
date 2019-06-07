@@ -106,7 +106,7 @@ let TESTS = {
     'value': 110
   },
   '26': {
-    'string': 'mhgu lbg: 130 raw, +10 raw, firefox ice',
+    'string': 'mhgu lbg: 100 raw, +10 raw, firefox ice, 100 raw',
     'value': 110
   }
 }
