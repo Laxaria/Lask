@@ -97,7 +97,7 @@ class MHSieve {
       return true
     } else {
       this.sieveError = sieveResult
-      return this.sieveError
+      return false
     }
   }
 }
